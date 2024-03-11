@@ -341,16 +341,16 @@ class TaskController {
         try {
             const { id } = req.params;
 
-            const resultado = await Task.destroy({
+            const result = await Task.destroy({
                 where: { id: id },
             });
 
-            if (resultado === 1) {
+            if (result === 1) {
                 res.status(200).send({
                     success: true,
                     message: "Task deleted successfully",
                 });
-            } else if (resultado === 0) {
+            } else if (result === 0) {
                 res.status(404).send({
                     success: false,
                     message: "Task not found with id: " + id,

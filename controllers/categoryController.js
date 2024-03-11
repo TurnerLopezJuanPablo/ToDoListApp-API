@@ -103,16 +103,16 @@ class CategoryController {
         try {
             const { id } = req.params;
 
-            const resultado = await Category.destroy({
+            const result = await Category.destroy({
                 where: { id: id },
             });
 
-            if (resultado === 1) {
+            if (result === 1) {
                 res.status(200).send({
                     success: true,
                     message: "Category deleted successfully",
                 });
-            } else if (resultado === 0) {
+            } else if (result === 0) {
                 res.status(404).send({
                     success: false,
                     message: "Category not found with id: " + id,

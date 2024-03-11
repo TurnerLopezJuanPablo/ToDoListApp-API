@@ -1,9 +1,13 @@
 import { Router } from "express";
+import validateAccess from "../utils/validateAccess.js"
 
 const categoryRoutes = Router();
 import CategoryController from "../Controllers/categoryController.js";
 
 const categoryController = new CategoryController();
+
+// Validate access
+categoryRoutes.use(validateAccess);
 
 // GET
 categoryRoutes.get("/getAll", categoryController.getAll);

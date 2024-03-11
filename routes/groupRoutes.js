@@ -1,9 +1,13 @@
 import { Router } from "express";
+import validateAccess from "../utils/validateAccess.js"
 
 const groupRoutes = Router();
 import GroupController from "../controllers/groupController.js";
 
 const groupController = new GroupController();
+
+// Validate access
+groupRoutes.use(validateAccess);
 
 // GET
 groupRoutes.get("/getAll", groupController.getAll);

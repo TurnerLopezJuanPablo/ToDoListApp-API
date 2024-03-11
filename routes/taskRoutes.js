@@ -1,9 +1,13 @@
 import { Router } from "express";
+import validateAccess from "../utils/validateAccess.js"
 
 const taskRoutes = Router();
 import TaskController from "../controllers/taskController.js";
 
 const taskController = new TaskController();
+
+// Validate access
+taskRoutes.use(validateAccess);
 
 // GET
 taskRoutes.get("/getAll", taskController.getAll);

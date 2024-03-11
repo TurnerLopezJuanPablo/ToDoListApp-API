@@ -1,9 +1,13 @@
 import { Router } from "express";
+import validateAccess from "../utils/validateAccess.js"
 
 const commentRoutes = Router();
 import CommentController from "../Controllers/CommentController.js";
 
 const commentController = new CommentController();
+
+// Validate access
+commentRoutes.use(validateAccess);
 
 // // GET
 // commentRoutes.get("/getAll", commentController.getAll);
