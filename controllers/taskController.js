@@ -1,7 +1,8 @@
-import { Task } from "../models/index.js";
+import { Task, Group } from "../models/index.js";
 
 class TaskController {
     constructor() { }
+
     getAll = async (req, res, next) => {
         try {
             const result = await Task.findAll({
@@ -18,6 +19,12 @@ class TaskController {
                     "GroupId",
                     "UserId",
                     "CategoryId",
+                ], include: [
+                    {
+                        model: Task,
+                        as: 'subtasks',
+                        attributes: ['id'],
+                    },
                 ],
             });
             if (result.length == 0) {
@@ -27,7 +34,7 @@ class TaskController {
             }
             res
                 .status(200)
-                .send({ success: true, message: "Tasks - getAll:", result });
+                .send({ success: true, message: "Tasks:", result });
         } catch (error) {
             next(error);
         }
@@ -53,6 +60,12 @@ class TaskController {
                     "GroupId",
                     "UserId",
                     "CategoryId",
+                ], include: [
+                    {
+                        model: Task,
+                        as: 'subtasks',
+                        attributes: ['id'],
+                    },
                 ],
             });
 
@@ -77,7 +90,7 @@ class TaskController {
                 title,
                 description,
                 due_date,
-                priority
+                priority: priority || 'none',
             });
             if (!result) throw new Error("Failed to create the task");
             res
@@ -112,8 +125,11 @@ class TaskController {
                 }
             );
 
-            if (!result)
-                throw new Error("Failed to update the task with id: " + id);
+            if (result[0] === 0) {
+                const error = new Error("Failed to update the task with id: " + id);
+                error.status = 404;
+                throw error;
+            }
 
             res.status(200).send({
                 success: true,
@@ -152,6 +168,169 @@ class TaskController {
                 success: true,
                 message: "Done update in Task with id: " + id,
                 updatedDoneValue: updatedDoneValue,
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    addTaskToGroup = async (req, res, next) => {
+        try {
+            const { id, groupId } = req.params;
+
+            const existingTask = await Task.findByPk(id);
+            if (!existingTask) {
+                const error = new Error("Task not found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            const existingGroup = await Group.findByPk(groupId);
+            if (!existingGroup) {
+                const error = new Error("Group not found with id: " + groupId);
+                error.status = 404;
+                throw error;
+            }
+
+            const result = await Task.update(
+                { GroupId: groupId },
+                { where: { id: id } }
+            );
+
+            if (result[0] >= 0) {
+                res.status(200).send({
+                    success: true,
+                    message: "Task with id " + id + " updated successfully to Group with id " + groupId,
+                });
+            } else {
+                const error = new Error("Error updating Task with id: " + id);
+                error.status = 400;
+                throw error;
+            }
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    removeTaskFromGroup = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+
+            const existingTask = await Task.findByPk(id);
+            if (!existingTask) {
+                throw new Error("Task not found with id: " + id);
+            }
+
+            const result = await Task.update(
+                { GroupId: null },
+                { where: { id: id } }
+            );
+
+            if (result[0] >= 0) {
+                res.status(200).send({
+                    success: true,
+                    message: "Task with id " + id + " removed from the group",
+                });
+            } else {
+                const error = new Error("Error removing Task with id: " + id + " from the group");
+                error.status = 400;
+                throw error;
+            }
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    addSubTask = async (req, res, next) => {
+        try {
+            const { id, subTaskId } = req.params;
+
+            if (id === subTaskId) {
+                const error = new Error("A task cannot be its own subtask");
+                error.status = 404;
+                throw error;
+            }
+
+            const existingTask = await Task.findByPk(id, { include: [{ model: Task, as: 'subtasks' }] });
+
+            if (!existingTask) {
+                const error = new Error("Task not found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            if (existingTask.subtasks && existingTask.subtasks.includes(subTaskId)) {
+                const error = new Error("Creating this subtask would result in a circular reference. Cannot create more subtasks.");
+                error.status = 400;
+                throw error;
+            }
+
+            const existingSubTask = await Task.findByPk(subTaskId);
+
+            if (!existingSubTask) {
+                const error = new Error("SubTask not found with id: " + subTaskId);
+                error.status = 404;
+                throw error;
+            }
+
+            const result = await Task.update(
+                { parentId: id },
+                { where: { id: subTaskId } }
+            );
+
+            if (result[0] === 0) {
+                const error = new Error("Error updating Task with id: " + id);
+                error.status = 400;
+                throw error;
+            }
+
+            res.status(200).send({
+                success: true,
+                message: "Done adding SubTask: " + subTaskId + " in Task with id: " + id,
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    removeSubTask = async (req, res, next) => {
+        try {
+            const { id, subTaskId } = req.params;
+
+            if (id === subTaskId) {
+                const error = new Error("A task cannot be removed itself");
+                error.status = 400;
+                throw error;
+            }
+
+            const existingTask = await Task.findByPk(id);
+            if (!existingTask) {
+                const error = new Error("Task not found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            const existingSubTask = await Task.findByPk(subTaskId);
+            if (!existingSubTask) {
+                const error = new Error("SubTask not found with id: " + subTaskId);
+                error.status = 404;
+                throw error;
+            }
+
+            const result = await Task.update(
+                { parentId: null },
+                { where: { id: subTaskId } }
+            );
+
+            if (result[0] === 0) {
+                const error = new Error("Error updating Task with id: " + subTaskId);
+                error.status = 400;
+                throw error;
+            }
+
+            res.status(200).send({
+                success: true,
+                message: "Done removing SubTask: " + subTaskId + " from Task with id: " + id,
             });
         } catch (error) {
             next(error);

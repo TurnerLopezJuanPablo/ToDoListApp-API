@@ -1,4 +1,4 @@
-import { DataTypes, Model } from 'sequelize'; 
+import { DataTypes, Model } from 'sequelize';
 import connection from "../connection/connection.js";
 
 class Group extends Model { }
@@ -11,7 +11,18 @@ Group.init({
     },
     title: {
         type: DataTypes.STRING(50),
-        allowNull: false
+        allowNull: false,
+        validate: {
+            notEmpty: {
+                args: true,
+                msg: 'Group Title is required',
+            },
+            customLength(value) {
+                if (value.length > 50) {
+                    throw new Error('Group Title must have a maximum of 50 characters');
+                }
+            },
+        },
     },
     description: {
         type: DataTypes.STRING(255),
@@ -26,6 +37,34 @@ Group.init({
     sequelize: connection,
     modelName: "Group",
     timestamps: false
+});
+
+Group.beforeCreate(async (group, options) => {
+    const desiredName = group.title;
+
+    let newName = desiredName;
+    let count = 1;
+
+    while (await Group.findOne({ where: { title: newName } })) {
+        newName = `${desiredName} (${count})`;
+        count++;
+    }
+
+    group.title = newName;
+});
+
+Group.beforeUpdate(async (group, options) => {
+    const desiredName = group.title;
+
+    let newName = desiredName;
+    let count = 1;
+
+    while (await Group.findOne({ where: { title: newName } })) {
+        newName = `${desiredName} (${count})`;
+        count++;
+    }
+
+    group.title = newName;
 });
 
 export default Group;

@@ -18,6 +18,11 @@ Task.init({
                 args: true,
                 msg: 'Title is required',
             },
+            customLength(value) {
+                if (value.length > 50) {
+                    throw new Error('Title must have a maximum of 50 characters');
+                }
+            },
         },
     },
     description: {
@@ -45,11 +50,50 @@ Task.init({
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0
+        // Check for unique value between Tasks and Groups
+    },
+    parentId: {
+        type: DataTypes.INTEGER,
+        validate: {
+            cannotBeCircular(value) {
+                if (parseInt(value) === parseInt(this.getDataValue('id'))) {
+                    throw new Error('A task cannot be its own subtask.');
+                }
+            },
+        },
     },
 }, {
     sequelize: connection,
     modelName: "Task",
     timestamps: false
+});
+
+Task.beforeCreate(async (task, options) => {
+    const desiredName = task.title;
+
+    let newName = desiredName;
+    let count = 1;
+
+    while (await Task.findOne({ where: { title: newName } })) {
+        newName = `${desiredName} (${count})`;
+        count++;
+    }
+
+    task.title = newName;
+});
+
+Task.beforeUpdate(async (task, options) => {
+    const desiredName = task.title;
+
+    let newName = desiredName;
+    let count = 1;
+
+    while (await Task.findOne({ where: { title: newName } })) {
+        newName = `${desiredName} (${count})`;
+        count++;
+    }
+
+    task.title = newName;
 });
 
 export default Task;
