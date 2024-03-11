@@ -1,4 +1,4 @@
-import { DataTypes as DT, Model } from "sequelize";
+import { DataTypes, Model } from "sequelize";
 import connection from "../connection/connection.js";
 import bcrypt from "bcrypt";
 
@@ -6,12 +6,12 @@ class User extends Model { }
 
 User.init({
     id: {
-        type: DT.INTEGER,
+        type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true,
     },
     name: {
-        type: DT.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
         validate: {
             isUsernameValid(value) {
@@ -27,7 +27,7 @@ User.init({
         },
     },
     surname: {
-        type: DT.STRING,
+        type: DataTypes.STRING,
         allowNull: false,
         validate: {
             isUsernameValid(value) {
@@ -81,29 +81,29 @@ User.init({
     timestamps: false
 });
 
-User.beforeUpdate(async (user) => {
-    const newPasswordHash = await bcrypt.hash(user.password, user.salt);
-    user.password = newPasswordHash
-});
+// User.beforeUpdate(async (user) => {
+//     const newPasswordHash = await bcrypt.hash(user.password, user.salt);
+//     user.password = newPasswordHash
+// });
 
-User.beforeCreate(async (user) => {
-    const salt = await bcrypt.genSalt();
-    user.salt = salt;
-    const passwordHash = await bcrypt.hash(user.password, salt);
-    user.password = passwordHash;
-});
+// User.beforeCreate(async (user) => {
+//     const salt = await bcrypt.genSalt();
+//     user.salt = salt;
+//     const passwordHash = await bcrypt.hash(user.password, salt);
+//     user.password = passwordHash;
+// });
 
-User.beforeBulkCreate(async (users) => {
+// User.beforeBulkCreate(async (users) => {
 
-    for (let index = 0; index < users.length; index++) {
-        const user = users[index];
+//     for (let index = 0; index < users.length; index++) {
+//         const user = users[index];
 
-        const salt = await bcrypt.genSalt();
-        user.salt = salt;
+//         const salt = await bcrypt.genSalt();
+//         user.salt = salt;
 
-        const claveHash = await bcrypt.hash(user.password, salt);
-        user.password = claveHash;
-    };
-});
+//         const claveHash = await bcrypt.hash(user.password, salt);
+//         user.password = claveHash;
+//     };
+// });
 
 export default User;

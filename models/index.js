@@ -1,8 +1,8 @@
-import Task from "./task";
-import Group from "./group";
-import User from "./user";
-import Category from "./category";
-import Comment from "./comment";
+import Task from "./task.js";
+import Group from "./group.js";
+import User from "./user.js";
+import Category from "./category.js";
+import Comment from "./comment.js";
 
 // Task
 Task.hasMany(Task, { as: 'subtasks', foreignKey: 'parentId' });
@@ -10,11 +10,11 @@ User.belongsToMany(Task, { through: 'UserTask' });
 Task.belongsToMany(User, { through: 'UserTask' });
 
 // Group
-TaskGroup.hasMany(Task, { as: 'tasks' });
+Group.hasMany(Task, { as: 'tasks' });
 
 // User
 User.hasMany(Task, { as: 'tasks' });
-User.hasMany(TaskGroup, { as: 'taskGroups' });
+User.hasMany(Group, { as: 'groups' });
 
 // Category
 User.hasMany(Category, { as: 'categories' });

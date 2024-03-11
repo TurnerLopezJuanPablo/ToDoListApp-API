@@ -1,5 +1,7 @@
-const { DataTypes, Sequelize } = require('sequelize');
+import { DataTypes, Model } from 'sequelize'; 
 import connection from "../connection/connection.js";
+
+class Group extends Model { }
 
 Group.init({
     id: {

@@ -1,4 +1,5 @@
-const { DataTypes, Sequelize } = require('sequelize');
+import { DataTypes, Model } from 'sequelize';
+import sequelize from '../connection/connection.js';
 import connection from "../connection/connection.js";
 
 class Task extends Model { }
@@ -11,7 +12,13 @@ Task.init({
     },
     title: {
         type: DataTypes.STRING(50),
-        allowNull: false
+        allowNull: false,
+        validate: {
+            notEmpty: {
+                args: true,
+                msg: 'Title is required',
+            },
+        },
     },
     description: {
         type: DataTypes.TEXT,
@@ -24,7 +31,7 @@ Task.init({
     created_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
     due_date: {
         type: DataTypes.DATE,

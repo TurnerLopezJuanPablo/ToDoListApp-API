@@ -1,4 +1,5 @@
-const { DataTypes, Sequelize } = require('sequelize');
+import { DataTypes, Model } from 'sequelize'; 
+import sequelize from '../connection/connection.js';
 import connection from "../connection/connection.js";
 
 class Comment extends Model { }
@@ -16,7 +17,7 @@ Comment.init({
     created_at: {
         type: DataTypes.DATE,
         allowNull: false,
-        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+        defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
     },
 }, {
     sequelize: connection,
