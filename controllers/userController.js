@@ -1,6 +1,8 @@
 import { User } from "../models/index.js";
+import sequelize from '../connection/connection.js';
 import { generateToken } from "../utils/token.js";
 import bcrypt from "bcrypt";
+import moment from "moment";
 
 class UserController {
     constructor() { }
@@ -110,7 +112,7 @@ class UserController {
 
     getUserById = async (req, res, next) => {
         try {
-            const { id } = req.params;
+            const { id } = req.params;            
             const result = await User.findOne({
                 where: {
                     id,
@@ -122,6 +124,7 @@ class UserController {
                     "surname",
                     "birthDate",
                     "email",
+                    "oldUserName"
                 ]
             });
 
@@ -149,6 +152,179 @@ class UserController {
         }
     };
 
+    updatePassword = async (req, res, next) => {
+        try {
+            let result;
+            const { id } = req.params;
+            const {
+                oldPassword,
+                newPassword,
+            } = req.body;
+
+            const user = await User.findOne({
+                where: {
+                    id: id,
+                },
+            });
+
+            if (!user) {
+                const error = new Error("No user found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            if (oldPassword == null || oldPassword == "") {
+                const error = new Error(`The old password provided is empty or null`);
+                error.status = 400;
+                throw error;
+            }
+
+            if (newPassword == null || newPassword == "") {
+                const error = new Error(`The new password provided is empty or null`);
+                error.status = 400;
+                throw error;
+            }
+
+            const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+
+            if (passwordMatch) {
+                const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9]).{8,}$/;
+                if (!passwordRegex.test(newPassword)) {
+                    const error = new Error(`The password must have a minimum of 8 characters, one uppercase letter and one number`);
+                    error.status = 400;
+                    throw error;
+                }
+
+                result = await User.update(
+                    { password: newPassword },
+                    {
+                        where: { id },
+                        individualHooks: true,
+                    }
+                );
+            } else {
+                res
+                    .status(400)
+                    .send({ success: false, message: "Incorrect password" });
+            }
+
+            if (!result) {
+                throw new Error("Failed to update the user password");
+            }
+
+            res
+                .status(200)
+                .send({
+                    success: true,
+                    message: "Password updated successfully",
+                });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    updateUser = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const {
+                name,
+                surname,
+                birthDate,
+                email,
+            } = req.body;
+
+            if (!name || !surname || !birthDate || !email) {
+                const error = new Error("One or more fields are empty or null");
+                error.status = 400;
+                throw error;
+            }
+
+            const result = await User.update(
+                {
+                    name,
+                    surname,
+                    birthDate,
+                    email,
+                },
+                {
+                    where: {
+                        id,
+                    },
+                }
+            );
+
+            if (!result) throw new Error("Failed to update the User");
+
+            res
+                .status(200)
+                .send({ success: true, message: "User updated successfully" });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    updateUserName = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const {
+                newUserName,
+            } = req.body;
+
+            const user = await User.findOne({
+                where: {
+                    id: id,
+                },
+            });
+
+            if (!user) {
+                const error = new Error("No user found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            if (newUserName == null || newUserName == "") {
+                const error = new Error(`The new UserName provided is empty or null`);
+                error.status = 400;
+                throw error;
+            }
+
+            const thirtyDaysAgo = moment().subtract(30, 'days');
+            if (user.lastUserNameUpdated && moment(user.lastUserNameUpdated).isAfter(thirtyDaysAgo)) {
+                const daysRemaining = thirtyDaysAgo.diff(moment(user.lastUserNameUpdated), 'days');
+                throw new Error(`You can only change your username once every 30 days. Days remaining: ${daysRemaining * (-1)}`);
+            }
+
+            const oldUserName = user.userName
+            if (oldUserName === newUserName) {
+                const error = new Error(`The new username provided is the same as the old one`);
+                error.status = 400;
+                throw error;
+            }
+
+            const result = await User.update(
+                {
+                    userName: newUserName,
+                    oldUserName,
+                    lastUserNameUpdated: sequelize.literal('CURRENT_TIMESTAMP')
+                },
+                {
+                    where: { id },
+                }
+            );
+
+            if (!result[0]) {
+                throw new Error(`Failed to update the username of User with id: ${id}`);
+            }
+
+            res.status(200).send({
+                success: true,
+                message: "Username updated successfully",
+            });
+        } catch (error) {
+            next(error);
+        };
+    }
+
     deleteUser = async (req, res, next) => {
         try {
             const { id } = req.params;
@@ -175,7 +351,6 @@ class UserController {
             });
         }
     };
-
 
 }
 

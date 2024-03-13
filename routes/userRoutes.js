@@ -16,14 +16,17 @@ userRoutes.use(validateAccess);
 // GET
 userRoutes.get("/me", userController.getLoggedUser);
 userRoutes.get("/:id", userController.getUserById);
-// I could use a GET to "get" all related data of the user in one shot
+// I could use a GET to "get" all related data of the user in one shot, ex: task, groups, comments, categories, etc...
 
 // POST
 userRoutes.post("/logout", userController.logOut);
-// userRoutes.post("/:id/updatePassword", userController.updatePassword);
+userRoutes.post("/:id/updatePassword", userController.updatePassword);
 
 // PUT 
-// userRoutes.put("/:id/update", userController.updateUser);
+userRoutes.put("/:id/update", userController.updateUser);
+
+// PATCH
+userRoutes.patch("/:id/updateUserName", userController.updateUserName);
 
 // DELETE
 userRoutes.delete("/:id/delete", userController.deleteUser);

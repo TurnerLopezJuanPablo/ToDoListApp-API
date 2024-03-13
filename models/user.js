@@ -101,6 +101,26 @@ User.init({
     salt: {
         type: DataTypes.STRING()
     },
+    oldUserName: {
+        type: DataTypes.STRING(30),
+        allowNull: true,
+        validate: {
+            isUsernameValid(value) {
+                if (value && value.length > 30) {
+                    throw new Error('Username must have a maximum of 30 characters');
+                }
+            },
+        },
+    },
+    lastUserNameUpdated: {
+        type: DataTypes.DATEONLY,
+        allowNull: true,
+        validate: {
+            isDate: {
+                msg: "Invalid Date Format"
+            },
+        }
+    },
 }, {
     sequelize: connection,
     modelName: "User",
