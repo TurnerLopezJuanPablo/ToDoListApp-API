@@ -1,4 +1,4 @@
-import { DataTypes, Model } from 'sequelize'; 
+import { DataTypes, Model } from 'sequelize';
 import sequelize from '../connection/connection.js';
 import connection from "../connection/connection.js";
 
@@ -12,7 +12,18 @@ Comment.init({
     },
     title: {
         type: DataTypes.STRING(50),
-        allowNull: false
+        allowNull: false,
+        validate: {
+            notEmpty: {
+                args: true,
+                msg: 'Title is required',
+            },
+            customLength(value) {
+                if (value.length > 50) {
+                    throw new Error('Title must have a maximum of 50 characters');
+                }
+            },
+        },
     },
     created_at: {
         type: DataTypes.DATE,

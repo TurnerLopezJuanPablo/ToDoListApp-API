@@ -37,6 +37,6 @@ Task.belongsTo(Category);
 
 // Comment
 Comment.belongsTo(Task);
-Comment.belongsTo(User);
+Task.hasMany(Comment, { as: 'comments' });
 
 export { Task, Group, User, Category, Comment, UserTask };
