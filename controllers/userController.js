@@ -239,6 +239,18 @@ class UserController {
                 throw error;
             }
 
+            const user = await User.findOne({
+                where: {
+                    id: id,
+                },
+            });
+
+            if (!user) {
+                const error = new Error("No user found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
             const result = await User.update(
                 {
                     name,

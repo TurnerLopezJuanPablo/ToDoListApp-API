@@ -1,4 +1,4 @@
-import { Category } from "../models/index.js";
+import { Category, Task } from "../models/index.js";
 
 class CategoryController {
     constructor() { }
@@ -10,16 +10,21 @@ class CategoryController {
                     "id",
                     "title",
                     "UserId",
+                ],
+                include: [
+                    {
+                        model: Task,
+                        as: 'tasks',
+                        attributes: ['id'],
+                    },
                 ]
             });
-            if (result.length == 0) {
-                const error = new Error("No categories uploaded");
-                error.status = 400;
+            if (!result || result.length === 0) {
+                const error = new Error("No categories found");
+                error.status = 404;
                 throw error;
             }
-            res
-                .status(200)
-                .send({ success: true, message: "Categories:", result });
+            res.status(200).send({ success: true, message: "Categories:", result });
         } catch (error) {
             next(error);
         }
@@ -37,6 +42,13 @@ class CategoryController {
                     "title",
                     "UserId",
                 ],
+                include: [
+                    {
+                        model: Task,
+                        as: 'tasks',
+                        attributes: ['id'],
+                    },
+                ]
             });
 
             if (!result) {

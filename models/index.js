@@ -3,11 +3,23 @@ import Group from "./group.js";
 import User from "./user.js";
 import Category from "./category.js";
 import Comment from "./comment.js";
+import UserTask from "./userTask.js";
 
 // Task
 Task.hasMany(Task, { as: 'subtasks', foreignKey: 'parentId' });
-User.belongsToMany(Task, { through: 'UserTask' });
-Task.belongsToMany(User, { through: 'UserTask' });
+
+// UserTask
+Task.belongsToMany(User, {
+    as: 'UserTasks',
+    through: "UserTask",
+    foreignKey: "taskId",
+})
+
+User.belongsToMany(Task, {
+    as: 'UserTasks',
+    through: "UserTask",
+    foreignKey: "userId",
+})
 
 // Group
 Group.hasMany(Task, { as: 'tasks' });
@@ -27,4 +39,4 @@ Task.belongsTo(Category);
 Comment.belongsTo(Task);
 Comment.belongsTo(User);
 
-export { Task, Group, User, Category, Comment };
+export { Task, Group, User, Category, Comment, UserTask };

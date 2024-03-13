@@ -1,4 +1,4 @@
-import { Task, Group } from "../models/index.js";
+import { Task, Group, UserTask } from "../models/index.js";
 
 class TaskController {
     constructor() { }
@@ -11,7 +11,6 @@ class TaskController {
                     "title",
                     "description",
                     "done",
-                    "created_at",
                     "due_date",
                     "priority",
                     "order",
@@ -52,7 +51,6 @@ class TaskController {
                     "title",
                     "description",
                     "done",
-                    "created_at",
                     "due_date",
                     "priority",
                     "order",
@@ -86,13 +84,22 @@ class TaskController {
     createTask = async (req, res, next) => {
         try {
             const { title, description, due_date, priority } = req.body;
+            const { user } = req;
             const result = await Task.create({
                 title,
                 description,
                 due_date,
                 priority: priority || 'none',
+                UserId: user.idUser,
             });
             if (!result) throw new Error("Failed to create the task");
+
+            const result2 = await UserTask.create({
+                userId: user.idUser,
+                taskId: result.id,
+            });
+            if (!result2) throw new Error("Failed to create the task");
+
             res
                 .status(200)
                 .send({ success: true, message: "Task created successfully" });
@@ -129,7 +136,23 @@ class TaskController {
                 const error = new Error("Failed to update the task with id: " + id);
                 error.status = 404;
                 throw error;
-            }
+            };
+
+            const { user } = req;
+
+            const result2 = await UserTask.update(
+                {
+                    updatedAt: new Date()
+                },
+                {
+                    where: {
+                        userId: user.idUser,
+                        taskId: id
+                    },
+                }
+            );
+
+            if (!result2) throw new Error("Failed to create the task");
 
             res.status(200).send({
                 success: true,

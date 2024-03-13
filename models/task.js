@@ -33,11 +33,6 @@ Task.init({
         type: DataTypes.BOOLEAN,
         defaultValue: false
     },
-    created_at: {
-        type: DataTypes.DATE,
-        allowNull: false,
-        defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
-    },
     due_date: {
         type: DataTypes.DATE,
         allowNull: true

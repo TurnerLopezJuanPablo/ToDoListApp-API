@@ -1,4 +1,4 @@
-import { Group } from "../models/index.js";
+import { Group, Task } from "../models/index.js";
 
 class GroupController {
     constructor() { }
@@ -12,7 +12,13 @@ class GroupController {
                     "description",
                     "order",
                     "UserId",
-                ],
+                ], include: [
+                    {
+                        model: Task,
+                        as: 'tasks',
+                        attributes: ['id'],
+                    },
+                ]
             });
             if (result.length == 0) {
                 const error = new Error("No groups uploaded");
@@ -40,7 +46,13 @@ class GroupController {
                     "description",
                     "order",
                     "UserId",
-                ],
+                ], include: [
+                    {
+                        model: Task,
+                        as: 'tasks',
+                        attributes: ['id'],
+                    },
+                ]
             });
 
             if (!result) {
@@ -60,9 +72,11 @@ class GroupController {
     createGroup = async (req, res, next) => {
         try {
             const { title, description } = req.body;
+            const { user } = req;
             const result = await Group.create({
                 title,
-                description 
+                description,
+                UserId: user.idUser
             });
             if (!result) throw new Error("Failed to create the group");
             res
