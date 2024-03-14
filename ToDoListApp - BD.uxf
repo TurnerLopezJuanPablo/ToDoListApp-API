@@ -1,11 +1,11 @@
-<diagram program="umletino" version="15.1"><zoom_level>9</zoom_level><element><id>UMLClass</id><coordinates><x>18</x><y>36</y><w>126</w><h>72</h></coordinates><panel_attributes>Category
+<diagram program="umletino" version="15.1"><zoom_level>9</zoom_level><element><id>UMLClass</id><coordinates><x>0</x><y>58</y><w>126</w><h>72</h></coordinates><panel_attributes>Category
 --
 - ID - int(11) - PK
 - TITLE - varchar(50)
 - USER_ID - int(11) - FK
 
 bg=red
-halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>63</x><y>171</y><w>135</w><h>99</h></coordinates><panel_attributes>Comment
+halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>45</x><y>193</y><w>135</w><h>99</h></coordinates><panel_attributes>Comment
 --
 - ID - int(11) - PK
 - TITLE - varchar(50)
@@ -14,7 +14,7 @@ halign=center</panel_attributes><additional_attributes></additional_attributes><
 - USER_ID - int(11) - FK
 
 bg=green
-halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>63</x><y>333</y><w>162</w><h>99</h></coordinates><panel_attributes>Group
+halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>45</x><y>355</y><w>162</w><h>99</h></coordinates><panel_attributes>Group
 --
 - ID - int(11) - PK
 - TITLE - varchar(50)
@@ -23,7 +23,7 @@ halign=center</panel_attributes><additional_attributes></additional_attributes><
 - USER_ID - int(11) - FK
 
 bg=blue
-halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>324</x><y>36</y><w>261</w><h>180</h></coordinates><panel_attributes>Task
+halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>306</x><y>58</y><w>261</w><h>180</h></coordinates><panel_attributes>Task
 --
 - ID - int(11) - PK
 - TITLE - varchar(50)
@@ -38,7 +38,7 @@ halign=center</panel_attributes><additional_attributes></additional_attributes><
 - CATEGORY_ID - int(11) - FK
 
 bg=yellow
-halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>675</x><y>117</y><w>144</w><h>81</h></coordinates><panel_attributes>UserTask
+halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>657</x><y>139</y><w>144</w><h>81</h></coordinates><panel_attributes>UserTask
 --
 - CREATED_AT - datetime
 - UPDATED_AT - datetime
@@ -46,7 +46,7 @@ halign=center</panel_attributes><additional_attributes></additional_attributes><
 - USER_ID - int(11) - FK
 
 bg=cyan
-halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>342</x><y>324</y><w>198</w><h>162</h></coordinates><panel_attributes>User
+halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>324</x><y>346</y><w>198</w><h>162</h></coordinates><panel_attributes>User
 --
 - ID - int(11) - PK
 - USER_NAME - varchar(30)
@@ -61,61 +61,84 @@ halign=center</panel_attributes><additional_attributes></additional_attributes><
 
 bg=pink
 halign=center
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>531</x><y>270</y><w>324</w><h>243</h></coordinates><panel_attributes>---------- *TASK* ----------
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>738</x><y>31</y><w>324</w><h>504</h></coordinates><panel_attributes>----- * TASK * -----
 Task.hasMany(Task, { as: 'subtasks', foreignKey: 'parentId' });
 
----------- *USERTASK* ----------
-User.belongsToMany(Task, { through: 'UserTask' });
-Task.belongsToMany(User, { through: 'UserTask' });
+----- * USERTASK* -----
+Task.belongsToMany(User, {
+    as: 'UserTasks',
+    through: "UserTask",
+    foreignKey: "taskId",
+})
 
----------- *USER* ----------
-User.hasMany(Group, { as: 'groups' });
-User.hasMany(Category, { as: 'categories' }); 
+User.belongsToMany(Task, {
+    as: 'UserTasks',
+    through: "UserTask",
+    foreignKey: "userId",
+})
 
----------- *GROUP* ----------
+----- * GROUP* -----
 Group.hasMany(Task, { as: 'tasks' });
 
----------- *COMMENT* ----------
-Comment.belongsTo(Task);
+----- * USER* -----
+User.hasMany(Task, { as: 'tasks' });
+User.hasMany(Group, { as: 'groups' });
+
+----- * CATEGORY* -----
+Category.belongsTo(User);
+User.hasMany(Category, { as: 'categories' });
+
+Category.hasMany(Task, { as: 'tasks' });
+Task.belongsTo(Category);
+
+----- * COMMENT * -----
 Task.hasMany(Comment, { as: 'comments' });
+Comment.belongsTo(Task);
+
+Comment.belongsTo(User);
+User.hasMany(Comment, { as: 'comments' });
 
 halign=center
 
 
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>576</x><y>63</y><w>189</w><h>81</h></coordinates><panel_attributes>lt=-
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>558</x><y>85</y><w>189</w><h>81</h></coordinates><panel_attributes>lt=-
 m1=1
 m2=m
 - subTasks (parent_Id)
-</panel_attributes><additional_attributes>10;60;70;60;70;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>576</x><y>153</y><w>117</w><h>45</h></coordinates><panel_attributes>lt=-
+</panel_attributes><additional_attributes>10;60;70;60;70;10;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>558</x><y>175</y><w>117</w><h>45</h></coordinates><panel_attributes>lt=-
 m1=n
 m2=m
 - userTask
-</panel_attributes><additional_attributes>10;20;110;20</additional_attributes></element><element><id>Relation</id><coordinates><x>441</x><y>189</y><w>306</w><h>153</h></coordinates><panel_attributes>lt=-
+</panel_attributes><additional_attributes>10;20;110;20</additional_attributes></element><element><id>Relation</id><coordinates><x>468</x><y>211</y><w>261</w><h>153</h></coordinates><panel_attributes>lt=-
 m1=n
 m2=m
-- userTask
-</panel_attributes><additional_attributes>10;150;10;70;310;70;310;10</additional_attributes></element><element><id>Relation</id><coordinates><x>216</x><y>387</y><w>144</w><h>45</h></coordinates><panel_attributes>lt=-
+- userTasks
+(taskId - userId)
+</panel_attributes><additional_attributes>10;150;10;70;260;70;260;10</additional_attributes></element><element><id>Relation</id><coordinates><x>198</x><y>409</y><w>144</w><h>45</h></coordinates><panel_attributes>lt=-
 m1=n
 m2=1
 - groups (user_id)
-</panel_attributes><additional_attributes>10;20;140;20</additional_attributes></element><element><id>Relation</id><coordinates><x>216</x><y>189</y><w>171</w><h>198</h></coordinates><panel_attributes>lt=-
+</panel_attributes><additional_attributes>10;20;140;20</additional_attributes></element><element><id>Relation</id><coordinates><x>198</x><y>211</y><w>171</w><h>198</h></coordinates><panel_attributes>lt=-
 m1=1
 m2=n
 - tasks (group_id)
-</panel_attributes><additional_attributes>10;190;70;190;70;10;120;10</additional_attributes></element><element><id>Relation</id><coordinates><x>189</x><y>117</y><w>153</w><h>153</h></coordinates><panel_attributes>lt=-
+</panel_attributes><additional_attributes>10;190;70;190;70;10;120;10</additional_attributes></element><element><id>Relation</id><coordinates><x>171</x><y>139</y><w>153</w><h>153</h></coordinates><panel_attributes>lt=-
 m1=1
 m2=1
 - (user_id)
-</panel_attributes><additional_attributes>10;140;70;140;70;10;150;10</additional_attributes></element><element><id>Relation</id><coordinates><x>189</x><y>90</y><w>153</w><h>144</h></coordinates><panel_attributes>lt=-
+</panel_attributes><additional_attributes>10;140;70;140;70;10;150;10</additional_attributes></element><element><id>Relation</id><coordinates><x>171</x><y>112</y><w>153</w><h>144</h></coordinates><panel_attributes>lt=-
 m1=1
 m2=1
 - (task_id)
-</panel_attributes><additional_attributes>10;130;40;130;40;10;150;10</additional_attributes></element><element><id>Relation</id><coordinates><x>135</x><y>36</y><w>207</w><h>45</h></coordinates><panel_attributes>lt=-
+</panel_attributes><additional_attributes>10;130;40;130;40;10;150;10</additional_attributes></element><element><id>Relation</id><coordinates><x>117</x><y>58</y><w>207</w><h>45</h></coordinates><panel_attributes>lt=-
 m1=1
 m2=n
 - tasks (category_id)
-</panel_attributes><additional_attributes>10;20;210;20</additional_attributes></element><element><id>Relation</id><coordinates><x>36</x><y>99</y><w>387</w><h>432</h></coordinates><panel_attributes>lt=-
+</panel_attributes><additional_attributes>10;20;210;20</additional_attributes></element><element><id>Relation</id><coordinates><x>18</x><y>121</y><w>387</w><h>432</h></coordinates><panel_attributes>lt=-
 m1=1
 m2=n
 - categories (user_id)
-</panel_attributes><additional_attributes>400;430;400;460;10;460;10;10</additional_attributes></element></diagram>
+</panel_attributes><additional_attributes>400;430;400;460;10;460;10;10</additional_attributes></element><element><id>Relation</id><coordinates><x>360</x><y>229</y><w>108</w><h>135</h></coordinates><panel_attributes>lt=-
+m1=1
+m2=n
+- tasks (user_id)</panel_attributes><additional_attributes>10;130;10;10</additional_attributes></element></diagram>
