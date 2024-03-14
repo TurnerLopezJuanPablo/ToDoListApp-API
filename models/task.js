@@ -1,6 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
-import sequelize from '../connection/connection.js';
 import connection from "../connection/connection.js";
+import { generateUniqueTitle } from '../utils/utils.js';
 
 class Task extends Model { }
 
@@ -63,32 +63,12 @@ Task.init({
     timestamps: false
 });
 
-Task.beforeCreate(async (task, options) => {
-    const desiredName = task.title;
-
-    let newName = desiredName;
-    let count = 1;
-
-    while (await Task.findOne({ where: { title: newName } })) {
-        newName = `${desiredName} (${count})`;
-        count++;
-    }
-
-    task.title = newName;
+Task.beforeCreate(async (taskInstance, options) => {
+    taskInstance.title = await generateUniqueTitle(taskInstance.title, Task);
 });
 
-Task.beforeUpdate(async (task, options) => {
-    const desiredName = task.title;
-
-    let newName = desiredName;
-    let count = 1;
-
-    while (await Task.findOne({ where: { title: newName } })) {
-        newName = `${desiredName} (${count})`;
-        count++;
-    }
-
-    task.title = newName;
+Task.beforeUpdate(async (taskInstance, options) => {
+    taskInstance.title = await generateUniqueTitle(taskInstance.title, Task);
 });
 
 export default Task;

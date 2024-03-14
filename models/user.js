@@ -140,7 +140,6 @@ User.beforeCreate(async (user) => {
 });
 
 User.beforeBulkCreate(async (users) => {
-
     for (let index = 0; index < users.length; index++) {
         const user = users[index];
 

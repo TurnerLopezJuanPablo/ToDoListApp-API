@@ -1,4 +1,4 @@
-import { User } from "../models/index.js";
+import { Category, Group, User, Task, Comment } from "../models/index.js";
 import sequelize from '../connection/connection.js';
 import { generateToken } from "../utils/token.js";
 import bcrypt from "bcrypt";
@@ -125,6 +125,61 @@ class UserController {
                     "birthDate",
                     "email",
                     "oldUserName"
+                ]
+            });
+
+            if (!result) {
+                const error = new Error("No user found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            res
+                .status(200)
+                .send({ success: true, message: "User found with id: " + id, result });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getAllData = async (req, res, next) => {
+        try {
+            const { user } = req;     
+            const id = user.idUser
+            const result = await User.findOne({
+                where: {
+                    id,
+                },
+                attributes: [
+                    "id",
+                    "userName",
+                    "name",
+                    "surname",
+                    "birthDate",
+                    "email",
+                    "oldUserName"
+                ], 
+                include: [
+                    {
+                        model: Category,
+                        as: 'categories',
+                        attributes: ['id', 'title'],
+                    }, 
+                    {
+                        model: Group,
+                        as: 'groups',
+                        attributes: ['id', 'title', 'description', 'order'],
+                    }, 
+                    {
+                        model: Task,
+                        as: 'tasks',
+                        attributes: ['id', 'title', 'description', 'done', 'due_date', 'priority', 'order', 'parentId', 'GroupId', 'CategoryId'],
+                    }, 
+                    {
+                        model: Comment,
+                        as: 'comments',
+                        attributes: ['id', 'title', 'created_at'],
+                    }, 
                 ]
             });
 

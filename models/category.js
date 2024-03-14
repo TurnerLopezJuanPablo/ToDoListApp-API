@@ -1,6 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
-import sequelize from '../connection/connection.js';
 import connection from "../connection/connection.js";
+import { generateUniqueTitle } from '../utils/utils.js';
 
 class Category extends Model { }
 
@@ -32,31 +32,11 @@ Category.init({
 });
 
 Category.beforeCreate(async (category, options) => {
-    const desiredName = category.title;
-
-    let newName = desiredName;
-    let count = 1;
-
-    while (await Category.findOne({ where: { title: newName } })) {
-        newName = `${desiredName} (${count})`;
-        count++;
-    }
-
-    category.title = newName;
+    category.title = await generateUniqueTitle(category.title, Category);
 });
 
 Category.beforeUpdate(async (category, options) => {
-    const desiredName = category.title;
-
-    let newName = desiredName;
-    let count = 1;
-
-    while (await Category.findOne({ where: { title: newName } })) {
-        newName = `${desiredName} (${count})`;
-        count++;
-    }
-
-    category.title = newName;
+    category.title = await generateUniqueTitle(category.title, Category);
 });
 
 export default Category;

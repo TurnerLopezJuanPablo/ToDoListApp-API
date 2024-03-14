@@ -29,14 +29,17 @@ User.hasMany(Task, { as: 'tasks' });
 User.hasMany(Group, { as: 'groups' });
 
 // Category
-User.hasMany(Category, { as: 'categories' });
 Category.belongsTo(User);
+User.hasMany(Category, { as: 'categories' });
 
 Category.hasMany(Task, { as: 'tasks' });
 Task.belongsTo(Category);
 
 // Comment
-Comment.belongsTo(Task);
 Task.hasMany(Comment, { as: 'comments' });
+Comment.belongsTo(Task);
+
+Comment.belongsTo(User);
+User.hasMany(Comment, { as: 'comments' });
 
 export { Task, Group, User, Category, Comment, UserTask };

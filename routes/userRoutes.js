@@ -2,7 +2,7 @@ import { Router } from "express";
 import validateAccess from "../utils/validateAccess.js"
 
 const userRoutes = Router();
-import UserController from "../Controllers/userController.js";
+import UserController from "../controllers/userController.js";
 
 const userController = new UserController();
 
@@ -15,8 +15,8 @@ userRoutes.use(validateAccess);
 
 // GET
 userRoutes.get("/me", userController.getLoggedUser);
+userRoutes.get("/getAllData", userController.getAllData)
 userRoutes.get("/:id", userController.getUserById);
-// I could use a GET to "get" all related data of the user in one shot, ex: task, groups, comments, categories, etc...
 
 // POST
 userRoutes.post("/logout", userController.logOut);

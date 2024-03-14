@@ -1,5 +1,6 @@
 import { DataTypes, Model } from 'sequelize';
 import connection from "../connection/connection.js";
+import { generateUniqueTitle } from '../utils/utils.js';
 
 class Group extends Model { }
 
@@ -40,31 +41,11 @@ Group.init({
 });
 
 Group.beforeCreate(async (group, options) => {
-    const desiredName = group.title;
-
-    let newName = desiredName;
-    let count = 1;
-
-    while (await Group.findOne({ where: { title: newName } })) {
-        newName = `${desiredName} (${count})`;
-        count++;
-    }
-
-    group.title = newName;
+    group.title = await generateUniqueTitle(group.title, Group);
 });
 
 Group.beforeUpdate(async (group, options) => {
-    const desiredName = group.title;
-
-    let newName = desiredName;
-    let count = 1;
-
-    while (await Group.findOne({ where: { title: newName } })) {
-        newName = `${desiredName} (${count})`;
-        count++;
-    }
-
-    group.title = newName;
+    group.title = await generateUniqueTitle(group.title, Group);
 });
 
 export default Group;
