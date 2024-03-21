@@ -112,7 +112,7 @@ class UserController {
 
     getUserById = async (req, res, next) => {
         try {
-            const { id } = req.params;            
+            const { id } = req.params;
             const result = await User.findOne({
                 where: {
                     id,
@@ -144,7 +144,7 @@ class UserController {
 
     getAllData = async (req, res, next) => {
         try {
-            const { user } = req;     
+            const { user } = req;
             const id = user.idUser
             const result = await User.findOne({
                 where: {
@@ -158,28 +158,28 @@ class UserController {
                     "birthDate",
                     "email",
                     "oldUserName"
-                ], 
+                ],
                 include: [
                     {
                         model: Category,
                         as: 'categories',
                         attributes: ['id', 'title'],
-                    }, 
+                    },
                     {
                         model: Group,
                         as: 'groups',
                         attributes: ['id', 'title', 'description', 'order'],
-                    }, 
+                    },
                     {
                         model: Task,
                         as: 'tasks',
                         attributes: ['id', 'title', 'description', 'done', 'due_date', 'priority', 'order', 'parentId', 'GroupId', 'CategoryId'],
-                    }, 
+                    },
                     {
                         model: Comment,
                         as: 'comments',
                         attributes: ['id', 'title', 'created_at'],
-                    }, 
+                    },
                 ]
             });
 

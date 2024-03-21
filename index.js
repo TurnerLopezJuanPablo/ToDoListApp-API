@@ -1,7 +1,8 @@
 import express from 'express'
 import connection from "./connection/connection.js";
-import { serverPort } from "./config/config.js"
+import { serverPort, corsOrigin } from "./config/config.js"
 import indexRoutes from "./routes/indexRoutes.js"
+import cors from 'cors';
 
 // Seeds
 import seedUser from './seeds/userSeed.js';
@@ -12,6 +13,9 @@ import seedComment from './seeds/commentSeed.js';
 import seedUserTask from './seeds/seedUserTask.js';
 
 const app = express()
+
+const corsOptions = { credentials: true, origin: corsOrigin };
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -38,7 +42,7 @@ app.use((error, req, res, next) => {
     .send(responseData);
 });
 
-const forceSync = true;
+const forceSync = false;
 const port = parseInt(serverPort) || 8080;
 
 connection.sync({ force: forceSync })

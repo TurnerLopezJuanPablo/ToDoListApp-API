@@ -9,7 +9,7 @@ const seedCategory = async (numCategory) => {
         }));
 
         await Category.bulkCreate(fakeCategories);
-        console.log(`${numCategory} categories seeded successfully.`);
+        console.log(`*****SEED***** ${numCategory} categories seeded successfully.`);
     } catch (error) {
         console.log('Error seeding categories:', error.message);
     }

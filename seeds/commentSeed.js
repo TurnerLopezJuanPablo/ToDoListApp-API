@@ -10,7 +10,7 @@ const seedComment = async (numComment) => {
         }));
 
         await Comment.bulkCreate(fakeComments);
-        console.log(`${numComment} comments seeded successfully.`);
+        console.log(`*****SEED***** ${numComment} comments seeded successfully.`);
     } catch (error) {
         console.log('Error seeding comments:', error.message);
     }

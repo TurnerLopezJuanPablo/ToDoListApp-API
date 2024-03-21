@@ -10,7 +10,7 @@ const seedGroup = async (numGroups) => {
         }));
 
         await Group.bulkCreate(fakeGroups);
-        console.log(`${numGroups} groups seeded successfully.`);
+        console.log(`*****SEED***** ${numGroups} groups seeded successfully.`);
     } catch (error) {
         console.log('Error seeding groups:', error.message);
     }
