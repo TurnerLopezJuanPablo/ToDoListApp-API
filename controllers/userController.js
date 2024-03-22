@@ -53,15 +53,7 @@ class UserController {
             };
 
             const token = generateToken(payload);
-
-            // Cookie for Thunder Client - Start
-            res.cookie('tokenToDoListApp', token, {
-                httpOnly: true, // The cookie is not accessible via client-side JavaScript
-                sameSite: 'Strict', // Ensure the cookie is sent only in a first-party context
-                maxAge: 86400000, // Set the cookie expiration time (e.g., 1 day)
-            });
-            // END
-
+            
             res
                 .status(200)
                 .send({
