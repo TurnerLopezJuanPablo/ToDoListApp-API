@@ -18,7 +18,13 @@ const validateAccess = (req, res, next) => {
             throw error;
         }
 
-        const { payload } = verifyToken(tokenToDoListApp);
+        const { payload, expired } = verifyToken(tokenToDoListApp);
+
+        if (expired) {
+            const error = new Error("Access denied, token expired");
+            error.status = 401;
+            throw error;
+        }
 
         if (!payload) {
             const error = new Error("Access denied, no payload found");

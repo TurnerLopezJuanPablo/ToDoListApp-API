@@ -24,7 +24,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(indexRoutes);
 
 app.get('/', (req, res) => {
-  res.send('ToDoListApp by Juampi Turner 2024')
+  res.send('TaskMaster App by Juampi Turner 2024')
 })
 
 // Error Handler
