@@ -131,12 +131,22 @@ User.init({
     timestamps: false
 });
 
+const trimFields = (instance) => {
+    if (instance.userName) instance.userName = instance.userName.trim();
+    if (instance.name) instance.name = instance.name.trim();
+    if (instance.surname) instance.surname = instance.surname.trim();
+};
+
 User.beforeUpdate(async (user) => {
+    trimFields(user);
+
     const newPasswordHash = await bcrypt.hash(user.password, user.salt);
     user.password = newPasswordHash
 });
 
 User.beforeCreate(async (user) => {
+    trimFields(user);
+
     const salt = await bcrypt.genSalt();
     user.salt = salt;
     const passwordHash = await bcrypt.hash(user.password, salt);

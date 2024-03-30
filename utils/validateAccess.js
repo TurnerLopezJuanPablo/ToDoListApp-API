@@ -2,7 +2,7 @@ import { verifyToken } from "../utils/token.js";
 
 const validateAccess = (req, res, next) => {
     try {
-        const cookieHeader = req.headers.authorization;
+        const cookieHeader = req.headers.authorization || req.headers.cookie;
 
         if (!cookieHeader) {
             const error = new Error("Access denied, no cookie session found");

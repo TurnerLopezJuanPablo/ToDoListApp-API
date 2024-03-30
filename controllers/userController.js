@@ -53,7 +53,15 @@ class UserController {
             };
 
             const token = generateToken(payload);
-            
+
+            // Cookie for Thunder Client - Start
+            res.cookie('tokenToDoListApp', token, {
+                httpOnly: true, // The cookie is not accessible via client-side JavaScript
+                sameSite: 'Strict', // Ensure the cookie is sent only in a first-party context
+                maxAge: 86400000, // Set the cookie expiration time (e.g., 1 day)
+            });
+            // End
+
             res
                 .status(200)
                 .send({
@@ -76,6 +84,7 @@ class UserController {
                 email,
                 password,
             } = req.body;
+            
             const result = await User.create({
                 userName,
                 name,
@@ -116,6 +125,7 @@ class UserController {
                     "surname",
                     "birthDate",
                     "email",
+                    "emailConfirmed",
                     "oldUserName"
                 ]
             });
@@ -149,30 +159,31 @@ class UserController {
                     "surname",
                     "birthDate",
                     "email",
+                    "emailConfirmed",
                     "oldUserName"
                 ],
-                include: [
-                    {
-                        model: Category,
-                        as: 'categories',
-                        attributes: ['id', 'title'],
-                    },
-                    {
-                        model: Board,
-                        as: 'groups',
-                        attributes: ['id', 'title', 'description', 'order'],
-                    },
-                    {
-                        model: Task,
-                        as: 'tasks',
-                        attributes: ['id', 'title', 'description', 'done', 'due_date', 'priority', 'order', 'parentId', 'GroupId', 'CategoryId'],
-                    },
-                    {
-                        model: Comment,
-                        as: 'comments',
-                        attributes: ['id', 'title', 'created_at'],
-                    },
-                ]
+                // include: [
+                //     {
+                //         model: Category,
+                //         as: 'categories',
+                //         attributes: ['id', 'title'],
+                //     },
+                //     {
+                //         model: Board,
+                //         as: 'groups',
+                //         attributes: ['id', 'title', 'description', 'order'],
+                //     },
+                //     {
+                //         model: Task,
+                //         as: 'tasks',
+                //         attributes: ['id', 'title', 'description', 'done', 'due_date', 'priority', 'order', 'parentId', 'GroupId', 'CategoryId'],
+                //     },
+                //     {
+                //         model: Comment,
+                //         as: 'comments',
+                //         attributes: ['id', 'title', 'created_at'],
+                //     },
+                // ]
             });
 
             if (!result) {
@@ -191,7 +202,9 @@ class UserController {
 
     logOut = async (req, res, next) => {
         try {
+            // Cookie for Thunder Client - Start
             res.cookie("tokenToDoListApp", "");
+            // End
 
             res.status(200).send({ success: true, message: "User session was closed" });
         } catch (error) {
@@ -277,10 +290,9 @@ class UserController {
                 name,
                 surname,
                 birthDate,
-                email,
             } = req.body;
 
-            if (!name || !surname || !birthDate || !email) {
+            if (!name || !surname || !birthDate) {
                 const error = new Error("One or more fields are empty or null");
                 error.status = 400;
                 throw error;
@@ -303,12 +315,12 @@ class UserController {
                     name,
                     surname,
                     birthDate,
-                    email,
                 },
                 {
                     where: {
                         id,
                     },
+                    individualHooks: true,
                 }
             );
 

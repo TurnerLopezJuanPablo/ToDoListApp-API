@@ -10,7 +10,6 @@ const seedUser = async (numUsers) => {
             birthDate: new Date('1990-01-01'),
             email: 'admin@admin.com',
             password: 'Admin1234',
-            createdAt: new Date(),
         };
 
         const fakeUsers = Array.from({ length: numUsers - 1 }, () => ({
@@ -20,7 +19,6 @@ const seedUser = async (numUsers) => {
             birthDate: faker.date.past(),
             email: faker.internet.email(),
             password: faker.internet.password(),
-            createdAt: new Date(),
         }));
 
         const users = [manualUser, ...fakeUsers];

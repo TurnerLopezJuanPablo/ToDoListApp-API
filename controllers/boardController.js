@@ -11,17 +11,17 @@ class BoardController {
                     "title",
                     "description",
                     "order",
-                    "UserId",
-                ], include: [
+                ], 
+                include: [
                     {
                         model: Task,
-                        as: 'tasks',
+                        as: 'Tasks',
                         attributes: ['id'],
                     },
                 ]
             });
             if (result.length == 0) {
-                const error = new Error("No groups uploaded");
+                const error = new Error("No boards uploaded");
                 error.status = 400;
                 throw error;
             }
@@ -45,18 +45,17 @@ class BoardController {
                     "title",
                     "description",
                     "order",
-                    "UserId",
                 ], include: [
                     {
                         model: Task,
-                        as: 'tasks',
+                        as: 'Tasks',
                         attributes: ['id'],
                     },
                 ]
             });
 
             if (!result) {
-                const error = new Error("No group found with id: " + id);
+                const error = new Error("No board found with id: " + id);
                 error.status = 404;
                 throw error;
             }
@@ -76,9 +75,8 @@ class BoardController {
             const result = await Board.create({
                 title,
                 description,
-                UserId: user.idUser
             });
-            if (!result) throw new Error("Failed to create the group");
+            if (!result) throw new Error("Failed to create the board");
             res
                 .status(200)
                 .send({ success: true, message: "Board created successfully" });
@@ -105,14 +103,14 @@ class BoardController {
             );
 
             if (result[0] === 0) {
-                const error = new Error("Failed to update the group with id: " + id);
+                const error = new Error("Failed to update the board with id: " + id);
                 error.status = 404;
                 throw error;
             }
 
             res.status(200).send({
                 success: true,
-                message: "Board with id " + id + " updated successfully",
+                message: "Board with id: " + id + " updated successfully",
             });
         } catch (error) {
             next(error);

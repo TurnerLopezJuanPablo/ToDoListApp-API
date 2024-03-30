@@ -7,25 +7,25 @@ import Contributor from "./contributor.js";
 import SubTask from "./subTask.js"
 
 // Contributor
-Board.belongsToMany(User, { through: Contributor })
-User.belongsToMany(Board, { through: Contributor });
+Board.belongsToMany(User, { as: "Contributors", through: Contributor, allowNull: false })
+User.belongsToMany(Board, { as: "Contributors", through: Contributor, allowNull: false });
 
 // User
-User.hasMany(Comment);
+User.hasMany(Comment, { as: "Tasks", foreignKey: { allowNull: false } });
 
 // Comment
-Comment.belongsTo(User);
+Comment.belongsTo(User, { foreignKey: { allowNull: false } });
 
 // Board
-Board.hasMany(Category);
-Board.hasMany(Task);
+Board.hasMany(Category, { as: "Categories", foreignKey: { allowNull: false } });
+Board.hasMany(Task, { as: "Tasks", foreignKey: { allowNull: false } });
 
 // Category
-Category.belongsTo(Board);
+Category.belongsTo(Board, { foreignKey: { allowNull: false } });
 
 // Task
-Task.hasMany(Comment);
-Task.hasMany(SubTask);
+Task.hasMany(Comment, { as: "Comments", foreignKey: { allowNull: false } });
+Task.hasMany(SubTask, { as: "SubTasks", foreignKey: { allowNull: false } });
 Task.belongsTo(Category);
 
 export { Task, Board, User, Category, Comment, Contributor, SubTask };

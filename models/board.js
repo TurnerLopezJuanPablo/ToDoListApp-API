@@ -27,7 +27,14 @@ Board.init({
     },
     description: {
         type: DataTypes.STRING(255),
-        allowNull: true
+        allowNull: true,
+        validate: {
+            customLength(value) {
+                if (value.length > 255) {
+                    throw new Error('Board description must have a maximum of 255 characters');
+                }
+            },
+        },
     },
     order: {
         type: DataTypes.INTEGER,

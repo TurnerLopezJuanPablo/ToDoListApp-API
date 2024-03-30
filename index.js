@@ -42,7 +42,7 @@ app.use((error, req, res, next) => {
     .send(responseData);
 });
 
-const forceSync = true;
+const forceSync = false;
 const port = parseInt(serverPort) || 8080;
 
 connection.sync({ force: forceSync })

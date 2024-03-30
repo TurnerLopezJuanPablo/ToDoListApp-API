@@ -1,4 +1,4 @@
-import { Task, Board, Contributor } from "../models/index.js";
+import { Task, Board, Contributor, SubTask } from "../models/index.js";
 
 class TaskController {
     constructor() { }
@@ -11,17 +11,20 @@ class TaskController {
                     "title",
                     "description",
                     "done",
+                    "starred",
                     "due_date",
                     "priority",
                     "order",
-                    "parentId",
-                    "GroupId",
-                    "UserId",
-                    "CategoryId",
+                    "assigned",
+                    "createdAt",
+                    "updatedAt",
+                    "updatedBy",
+                    "BoardId",
+                    "CategoryId"
                 ], include: [
                     {
-                        model: Task,
-                        as: 'subtasks',
+                        model: SubTask,
+                        as: 'SubTasks',
                         attributes: ['id'],
                     },
                 ],
@@ -51,17 +54,20 @@ class TaskController {
                     "title",
                     "description",
                     "done",
+                    "starred",
                     "due_date",
                     "priority",
                     "order",
-                    "parentId",
-                    "GroupId",
-                    "UserId",
-                    "CategoryId",
+                    "assigned",
+                    "createdAt",
+                    "updatedAt",
+                    "updatedBy",
+                    "BoardId",
+                    "CategoryId"
                 ], include: [
                     {
-                        model: Task,
-                        as: 'subtasks',
+                        model: SubTask,
+                        as: 'SubTasks',
                         attributes: ['id'],
                     },
                 ],
@@ -83,22 +89,22 @@ class TaskController {
 
     createTask = async (req, res, next) => {
         try {
-            const { title, description, due_date, priority } = req.body;
+            const { title, description, due_date, priority, boardId } = req.body;
             const { user } = req;
             const result = await Task.create({
                 title,
                 description,
                 due_date,
                 priority: priority || 'none',
-                UserId: user.idUser,
+                BoardId: boardId
             });
             if (!result) throw new Error("Failed to create the task");
 
-            const result2 = await Contributor.create({
-                userId: user.idUser,
-                taskId: result.id,
-            });
-            if (!result2) throw new Error("Failed to create the task");
+            // const result2 = await Contributor.create({
+            //     userId: user.idUser,
+            //     taskId: result.id,
+            // });
+            // if (!result2) throw new Error("Failed to create the task");
 
             res
                 .status(200)
@@ -138,21 +144,21 @@ class TaskController {
                 throw error;
             };
 
-            const { user } = req;
+            // const { user } = req;
 
-            const result2 = await Contributor.update(
-                {
-                    updatedAt: new Date()
-                },
-                {
-                    where: {
-                        userId: user.idUser,
-                        taskId: id
-                    },
-                }
-            );
+            // const result2 = await Contributor.update(
+            //     {
+            //         updatedAt: new Date()
+            //     },
+            //     {
+            //         where: {
+            //             userId: user.idUser,
+            //             taskId: id
+            //         },
+            //     }
+            // );
 
-            if (!result2) throw new Error("Failed to create the task");
+            // if (!result2) throw new Error("Failed to create the task");
 
             res.status(200).send({
                 success: true,
@@ -197,7 +203,41 @@ class TaskController {
         }
     };
 
-    addTaskToGroup = async (req, res, next) => {
+    toggleStarred = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+
+            const existingTask = await Task.findByPk(id);
+            if (!existingTask) {
+                const error = new Error("Task not found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            const updatedStarredValue = !existingTask.starred;
+
+            const result = await Task.update(
+                { starred: updatedStarredValue },
+                { where: { id: id } }
+            );
+
+            if (result[0] === 0) {
+                const error = new Error("Error updating Task with id: " + id);
+                error.status = 400;
+                throw error;
+            }
+
+            res.status(200).send({
+                success: true,
+                message: "Starred update in Task with id: " + id,
+                updatedDoneValue: updatedStarredValue,
+            });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    addTaskToAnotherBoard = async (req, res, next) => {
         try {
             const { id, groupId } = req.params;
 
@@ -230,131 +270,6 @@ class TaskController {
                 error.status = 400;
                 throw error;
             }
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    removeTaskFromGroup = async (req, res, next) => {
-        try {
-            const { id } = req.params;
-
-            const existingTask = await Task.findByPk(id);
-            if (!existingTask) {
-                throw new Error("Task not found with id: " + id);
-            }
-
-            const result = await Task.update(
-                { GroupId: null },
-                { where: { id: id } }
-            );
-
-            if (result[0] >= 0) {
-                res.status(200).send({
-                    success: true,
-                    message: "Task with id " + id + " removed from the group",
-                });
-            } else {
-                const error = new Error("Error removing Task with id: " + id + " from the group");
-                error.status = 400;
-                throw error;
-            }
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    addSubTask = async (req, res, next) => {
-        try {
-            const { id, subTaskId } = req.params;
-
-            if (id === subTaskId) {
-                const error = new Error("A task cannot be its own subtask");
-                error.status = 404;
-                throw error;
-            }
-
-            const existingTask = await Task.findByPk(id, { include: [{ model: Task, as: 'subtasks' }] });
-
-            if (!existingTask) {
-                const error = new Error("Task not found with id: " + id);
-                error.status = 404;
-                throw error;
-            }
-
-            if (existingTask.subtasks && existingTask.subtasks.includes(subTaskId)) {
-                const error = new Error("Creating this subtask would result in a circular reference. Cannot create more subtasks.");
-                error.status = 400;
-                throw error;
-            }
-
-            const existingSubTask = await Task.findByPk(subTaskId);
-
-            if (!existingSubTask) {
-                const error = new Error("SubTask not found with id: " + subTaskId);
-                error.status = 404;
-                throw error;
-            }
-
-            const result = await Task.update(
-                { parentId: id },
-                { where: { id: subTaskId } }
-            );
-
-            if (result[0] === 0) {
-                const error = new Error("Error updating Task with id: " + id);
-                error.status = 400;
-                throw error;
-            }
-
-            res.status(200).send({
-                success: true,
-                message: "Done adding SubTask: " + subTaskId + " in Task with id: " + id,
-            });
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    removeSubTask = async (req, res, next) => {
-        try {
-            const { id, subTaskId } = req.params;
-
-            if (id === subTaskId) {
-                const error = new Error("A task cannot be removed itself");
-                error.status = 400;
-                throw error;
-            }
-
-            const existingTask = await Task.findByPk(id);
-            if (!existingTask) {
-                const error = new Error("Task not found with id: " + id);
-                error.status = 404;
-                throw error;
-            }
-
-            const existingSubTask = await Task.findByPk(subTaskId);
-            if (!existingSubTask) {
-                const error = new Error("SubTask not found with id: " + subTaskId);
-                error.status = 404;
-                throw error;
-            }
-
-            const result = await Task.update(
-                { parentId: null },
-                { where: { id: subTaskId } }
-            );
-
-            if (result[0] === 0) {
-                const error = new Error("Error updating Task with id: " + subTaskId);
-                error.status = 400;
-                throw error;
-            }
-
-            res.status(200).send({
-                success: true,
-                message: "Done removing SubTask: " + subTaskId + " from Task with id: " + id,
-            });
         } catch (error) {
             next(error);
         }

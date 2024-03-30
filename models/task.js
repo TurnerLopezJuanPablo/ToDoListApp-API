@@ -60,18 +60,6 @@ Task.init({
     assigned: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        // references: {
-        //     model: 'User', 
-        //     key: 'ID',  
-        // },
-        // validate: {
-        //     async isAssignedUserExists(value) {
-        //         const user = await User.findByPk(value);
-        //         if (!user) {
-        //             throw new Error('Assigned user does not exist');
-        //         }
-        //     }
-        // }
     },
     createdAt: {
         type: Sequelize.DATE,

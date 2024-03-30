@@ -21,10 +21,8 @@ taskRoutes.put("/:id/update", taskController.updateTask);
 
 // PATCH
 taskRoutes.patch("/:id/toggleDone", taskController.toggleDone);
-taskRoutes.patch("/:id/:groupId/addGroup", taskController.addTaskToGroup);
-taskRoutes.patch("/:id/removeTaskFromGroup", taskController.removeTaskFromGroup);
-taskRoutes.patch("/:id/:subTaskId", taskController.addSubTask);
-taskRoutes.patch("/:id/:subTaskId/remove", taskController.removeSubTask);
+taskRoutes.patch("/:id/toggleStarred", taskController.toggleStarred);
+taskRoutes.patch("/:id/:groupId/addGroup", taskController.addTaskToAnotherBoard);
 
 // DELETE
 taskRoutes.delete("/:id/delete", taskController.deleteTask);
