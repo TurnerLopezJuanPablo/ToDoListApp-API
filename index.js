@@ -56,11 +56,11 @@ connection.sync({ force: forceSync })
   })
   .then(async () => {
     if (forceSync) {
-      await seedUser(5);
-      await seedGroup(3);
-      await seedCategory(4);
-      await seedTask(10);
-      await seedComment(8);
-      await seedUserTask(3);
+      // await seedUser(5);
+      // await seedGroup(3);
+      // await seedCategory(4);
+      // await seedTask(10);
+      // await seedComment(8);
+      // await seedUserTask(3);
     }
   });
