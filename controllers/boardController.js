@@ -1,11 +1,11 @@
-import { Group, Task } from "../models/index.js";
+import { Board, Task } from "../models/index.js";
 
-class GroupController {
+class BoardController {
     constructor() { }
 
     getAll = async (req, res, next) => {
         try {
-            const result = await Group.findAll({
+            const result = await Board.findAll({
                 attributes: [
                     "id",
                     "title",
@@ -27,16 +27,16 @@ class GroupController {
             }
             res
                 .status(200)
-                .send({ success: true, message: "Groups:", result });
+                .send({ success: true, message: "Boards:", result });
         } catch (error) {
             next(error);
         }
     };
 
-    getGroupById = async (req, res, next) => {
+    getBoardById = async (req, res, next) => {
         try {
             const { id } = req.params;
-            const result = await Group.findOne({
+            const result = await Board.findOne({
                 where: {
                     id,
                 },
@@ -63,17 +63,17 @@ class GroupController {
 
             res
                 .status(200)
-                .send({ success: true, message: "Group found with id: " + id, result });
+                .send({ success: true, message: "Board found with id: " + id, result });
         } catch (error) {
             next(error);
         }
     };
 
-    createGroup = async (req, res, next) => {
+    createBoard = async (req, res, next) => {
         try {
             const { title, description } = req.body;
             const { user } = req;
-            const result = await Group.create({
+            const result = await Board.create({
                 title,
                 description,
                 UserId: user.idUser
@@ -81,18 +81,18 @@ class GroupController {
             if (!result) throw new Error("Failed to create the group");
             res
                 .status(200)
-                .send({ success: true, message: "Group created successfully" });
+                .send({ success: true, message: "Board created successfully" });
         } catch (error) {
             res.status(400).send({ success: false, message: error.message });
         }
     };
 
-    updateGroup = async (req, res, next) => {
+    updateBoard = async (req, res, next) => {
         try {
             const { id } = req.params;
             const { title, description } = req.body;
 
-            const result = await Group.update(
+            const result = await Board.update(
                 {
                     title,
                     description,
@@ -112,39 +112,39 @@ class GroupController {
 
             res.status(200).send({
                 success: true,
-                message: "Group with id " + id + " updated successfully",
+                message: "Board with id " + id + " updated successfully",
             });
         } catch (error) {
             next(error);
         }
     };
 
-    deleteGroup = async (req, res, next) => {
+    deleteBoard = async (req, res, next) => {
         try {
             const { id } = req.params;
 
-            const result = await Group.destroy({
+            const result = await Board.destroy({
                 where: { id: id },
             });
 
             if (result === 1) {
                 res.status(200).send({
                     success: true,
-                    message: "Group deleted successfully",
+                    message: "Board deleted successfully",
                 });
             } else if (result === 0) {
                 res.status(404).send({
                     success: false,
-                    message: "Group not found with id: " + id,
+                    message: "Board not found with id: " + id,
                 });
             }
         } catch (error) {
             res.status(500).send({
                 success: false,
-                message: "Error trying to delete Group with id: " + id + error.message,
+                message: "Error trying to delete Board with id: " + id + error.message,
             });
         }
     };
 }
 
-export default GroupController;
+export default BoardController;

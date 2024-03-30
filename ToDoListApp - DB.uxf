@@ -153,7 +153,7 @@ halign=center</panel_attributes><additional_attributes></additional_attributes><
 - ID - int(11) - PK
 - TEXT - varchar(50)
 - CREATED_AT - datetime
-- NOTE_ID- int(11) - FK
+- TASK_ID - int(11) - FK
 - USER_ID - int(11) - FK
 
 bg=green
@@ -169,9 +169,9 @@ halign=center</panel_attributes><additional_attributes></additional_attributes><
 --
 - CREATED_AT - datetime
 - UPDATED_AT - datetime
+- PERMIT- enum('owner','reader','commentor','editor')
 - BOARD_ID - int(11) - FK
 - USER_ID - int(11) - FK
-- PERMIT- enum('owner','reader','commentor','editor')
 
 bg=cyan
 halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>189</x><y>1260</y><w>198</w><h>180</h></coordinates><panel_attributes>User
@@ -190,7 +190,7 @@ halign=center</panel_attributes><additional_attributes></additional_attributes><
 
 bg=pink
 halign=center
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>450</x><y>873</y><w>261</w><h>207</h></coordinates><panel_attributes>Task
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>UMLClass</id><coordinates><x>450</x><y>873</y><w>261</w><h>225</h></coordinates><panel_attributes>Task
 --
 - ID - int(11) - FK
 - TITLE - varchar(50)
@@ -200,11 +200,12 @@ halign=center
 - DUE_DATE - datetime
 - PRIORITY - enum('none','low','medium','high')
 - ORDER - int(11)
-- CATEGORY_ID - int(11) - FK
 - ASSIGNED - int(11)
 - CREATED_AT - datetime
 - UPDATED_AT - datetime
 - UPDATED_BY - int(11)
+- BOARD_ID - int(11) - FK 
+- CATEGORY_ID - int(11) - FK
 
 bg=magenta
 halign=center</panel_attributes><additional_attributes></additional_attributes></element><element><id>Relation</id><coordinates><x>99</x><y>864</y><w>144</w><h>297</h></coordinates><panel_attributes>lt=-
@@ -219,24 +220,29 @@ m2=1
 m1=n
 m2=1
 - tasks (category_id)
-</panel_attributes><additional_attributes>10;20;350;20;350;70</additional_attributes></element><element><id>Relation</id><coordinates><x>261</x><y>981</y><w>153</w><h>297</h></coordinates><panel_attributes>lt=-
+</panel_attributes><additional_attributes>10;20;350;20;350;70</additional_attributes></element><element><id>Relation</id><coordinates><x>288</x><y>945</y><w>198</w><h>333</h></coordinates><panel_attributes>lt=-
 m1=n
 m2=1
 
 
+
+
+
+
+
 - userComments (user_id)
-</panel_attributes><additional_attributes>10;10;10;310</additional_attributes></element><element><id>Relation</id><coordinates><x>288</x><y>936</y><w>180</w><h>45</h></coordinates><panel_attributes>lt=-
+</panel_attributes><additional_attributes>10;10;60;10;60;350</additional_attributes></element><element><id>Relation</id><coordinates><x>288</x><y>900</y><w>180</w><h>45</h></coordinates><panel_attributes>lt=-
 m1=n
 m2=1
 - taskComments (task_id)
 </panel_attributes><additional_attributes>10;20;180;20</additional_attributes></element><element><id>Relation</id><coordinates><x>378</x><y>1260</y><w>198</w><h>108</h></coordinates><panel_attributes>lt=-
 m2=n
-m1=1
+m1=m
 
 - contributes (user_id)
 </panel_attributes><additional_attributes>10;80;190;80;190;10</additional_attributes></element><element><id>Relation</id><coordinates><x>225</x><y>1188</y><w>261</w><h>45</h></coordinates><panel_attributes>lt=-
 m1=n
-m2=1
+m2=m
 - contributors (board_id)</panel_attributes><additional_attributes>270;20;10;20</additional_attributes></element><element><id>Relation</id><coordinates><x>198</x><y>1044</y><w>270</w><h>117</h></coordinates><panel_attributes>lt=-
 m1=n
 m2=1
@@ -244,7 +250,7 @@ m2=1
 halign=center
 fontsize=50
 
-</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>198</x><y>675</y><w>324</w><h>72</h></coordinates><panel_attributes>NEW IDEA
+</panel_attributes><additional_attributes></additional_attributes></element><element><id>Text</id><coordinates><x>279</x><y>702</y><w>324</w><h>72</h></coordinates><panel_attributes>NEW IDEA
 halign=center
 fontsize=50
 
@@ -260,4 +266,29 @@ halign=center</panel_attributes><additional_attributes></additional_attributes><
 m2=n
 m1=1
 - subTasks (subTask_id)
-</panel_attributes><additional_attributes>10;20;180;20</additional_attributes></element></diagram>
+</panel_attributes><additional_attributes>10;20;180;20</additional_attributes></element><element><id>Text</id><coordinates><x>765</x><y>1098</y><w>324</w><h>387</h></coordinates><panel_attributes>----- * CONTRIBUTOR * -----
+Board.belongsToMany(User, { through: Contributor })
+User.belongsToMany(Board, { through: Contributor });
+
+----- * USER* -----
+User.hasMany(Comment);
+
+----- * COMMENT * -----
+Comment.belongsTo(User);
+
+----- * BOARD * -----
+Board.hasMany(Category);
+Board.hasMany(Task);
+
+----- * CATEGORY * -----
+Category.belongsTo(Board);
+
+----- * TASK * -----
+Task.hasMany(Comment);
+Task.hasMany(SubTask);
+Task.belongsTo(Category);
+
+halign=center
+
+
+</panel_attributes><additional_attributes></additional_attributes></element></diagram>

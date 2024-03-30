@@ -10,17 +10,17 @@ Comment.init({
         primaryKey: true,
         autoIncrement: true
     },
-    title: {
+    text: {
         type: DataTypes.STRING(50),
         allowNull: false,
         validate: {
             notEmpty: {
                 args: true,
-                msg: 'Title is required',
+                msg: 'Text is required',
             },
             customLength(value) {
                 if (value.length > 50) {
-                    throw new Error('Title must have a maximum of 50 characters');
+                    throw new Error('Text must have a maximum of 50 characters');
                 }
             },
         },

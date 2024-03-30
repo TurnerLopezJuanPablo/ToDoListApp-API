@@ -1,4 +1,4 @@
-import { Task, Group, UserTask } from "../models/index.js";
+import { Task, Board, Contributor } from "../models/index.js";
 
 class TaskController {
     constructor() { }
@@ -94,7 +94,7 @@ class TaskController {
             });
             if (!result) throw new Error("Failed to create the task");
 
-            const result2 = await UserTask.create({
+            const result2 = await Contributor.create({
                 userId: user.idUser,
                 taskId: result.id,
             });
@@ -140,7 +140,7 @@ class TaskController {
 
             const { user } = req;
 
-            const result2 = await UserTask.update(
+            const result2 = await Contributor.update(
                 {
                     updatedAt: new Date()
                 },
@@ -208,7 +208,7 @@ class TaskController {
                 throw error;
             }
 
-            const existingGroup = await Group.findByPk(groupId);
+            const existingGroup = await Board.findByPk(groupId);
             if (!existingGroup) {
                 const error = new Error("Group not found with id: " + groupId);
                 error.status = 404;

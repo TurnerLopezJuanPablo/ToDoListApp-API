@@ -2,17 +2,9 @@ import { DataTypes, Model } from 'sequelize';
 import sequelize from '../connection/connection.js';
 import connection from "../connection/connection.js";
 
-class UserTask extends Model { }
+class Contributor extends Model { }
 
-UserTask.init({
-    userId: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-    },
-    taskId: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-    },
+Contributor.init({
     createdAt: {
         type: DataTypes.DATE,
         allowNull: false,
@@ -22,10 +14,14 @@ UserTask.init({
         type: DataTypes.DATE,
         allowNull: true,
     },   
+    permit: {
+        type: DataTypes.ENUM('owner','reader','commentor','editor'),
+        allowNull: false,
+    },
 }, {
     sequelize: connection,
-    modelName: "UserTask",
+    modelName: "Contributor",
     timestamps: false
 });
 
-export default UserTask;
+export default Contributor;

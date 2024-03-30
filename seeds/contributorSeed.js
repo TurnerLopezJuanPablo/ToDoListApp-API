@@ -1,5 +1,5 @@
 import faker from 'faker';
-import { UserTask } from '../models/index.js';
+import { Contributor } from '../models/index.js';
 
 const seedUserTask = async (numUsersTask) => {
     try {

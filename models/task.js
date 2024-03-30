@@ -1,4 +1,4 @@
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model, Sequelize } from 'sequelize';
 import connection from "../connection/connection.js";
 import { generateUniqueTitle } from '../utils/utils.js';
 
@@ -27,9 +27,20 @@ Task.init({
     },
     description: {
         type: DataTypes.TEXT,
-        allowNull: true
+        allowNull: true,
+        validate: {
+            customLength(value) {
+                if (value.length > 500) {
+                    throw new Error('Description must have a maximum of 500 characters');
+                }
+            },
+        },
     },
     done: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    starred: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
     },
@@ -45,18 +56,37 @@ Task.init({
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0
-        // Check for unique value between Tasks and Groups
     },
-    parentId: {
+    assigned: {
         type: DataTypes.INTEGER,
-        validate: {
-            cannotBeCircular(value) {
-                if (parseInt(value) === parseInt(this.getDataValue('id'))) {
-                    throw new Error('A task cannot be its own subtask.');
-                }
-            },
-        },
+        allowNull: true,
+        // references: {
+        //     model: 'User', 
+        //     key: 'ID',  
+        // },
+        // validate: {
+        //     async isAssignedUserExists(value) {
+        //         const user = await User.findByPk(value);
+        //         if (!user) {
+        //             throw new Error('Assigned user does not exist');
+        //         }
+        //     }
+        // }
     },
+    createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+    },
+    updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: true,
+        defaultValue: null
+    },
+    updatedBy: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+    }
 }, {
     sequelize: connection,
     modelName: "Task",

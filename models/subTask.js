@@ -1,33 +1,32 @@
 import { DataTypes, Model } from 'sequelize';
 import connection from "../connection/connection.js";
-import { generateUniqueTitle } from '../utils/utils.js';
 
-class Group extends Model { }
+class SubTask extends Model { }
 
-Group.init({
+SubTask.init({
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         autoIncrement: true
     },
-    title: {
+    text: {
         type: DataTypes.STRING(50),
         allowNull: false,
         validate: {
             notEmpty: {
                 args: true,
-                msg: 'Group Title is required',
+                msg: 'Text is required',
             },
             customLength(value) {
                 if (value.length > 50) {
-                    throw new Error('Group Title must have a maximum of 50 characters');
+                    throw new Error('Text must have a maximum of 50 characters');
                 }
             },
         },
     },
-    description: {
-        type: DataTypes.STRING(255),
-        allowNull: true
+    done: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
     },
     order: {
         type: DataTypes.INTEGER,
@@ -36,16 +35,8 @@ Group.init({
     },
 }, {
     sequelize: connection,
-    modelName: "Group",
+    modelName: "SubTask",
     timestamps: false
 });
 
-Group.beforeCreate(async (group, options) => {
-    group.title = await generateUniqueTitle(group.title, Group);
-});
-
-Group.beforeUpdate(async (group, options) => {
-    group.title = await generateUniqueTitle(group.title, Group);
-});
-
-export default Group;
+export default SubTask;

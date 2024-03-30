@@ -1,4 +1,4 @@
-import { Category, Group, User, Task, Comment } from "../models/index.js";
+import { Category, Board, User, Task, Comment } from "../models/index.js";
 import sequelize from '../connection/connection.js';
 import { generateToken } from "../utils/token.js";
 import bcrypt from "bcrypt";
@@ -158,7 +158,7 @@ class UserController {
                         attributes: ['id', 'title'],
                     },
                     {
-                        model: Group,
+                        model: Board,
                         as: 'groups',
                         attributes: ['id', 'title', 'description', 'order'],
                     },
