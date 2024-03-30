@@ -239,7 +239,7 @@ m2=1
 m2=n
 m1=m
 
-- contributes (user_id)
+- ontributors (user_id)
 </panel_attributes><additional_attributes>10;80;190;80;190;10</additional_attributes></element><element><id>Relation</id><coordinates><x>225</x><y>1188</y><w>261</w><h>45</h></coordinates><panel_attributes>lt=-
 m1=n
 m2=m
@@ -266,27 +266,27 @@ halign=center</panel_attributes><additional_attributes></additional_attributes><
 m2=n
 m1=1
 - subTasks (subTask_id)
-</panel_attributes><additional_attributes>10;20;180;20</additional_attributes></element><element><id>Text</id><coordinates><x>765</x><y>1098</y><w>324</w><h>387</h></coordinates><panel_attributes>----- * CONTRIBUTOR * -----
-Board.belongsToMany(User, { through: Contributor })
-User.belongsToMany(Board, { through: Contributor });
+</panel_attributes><additional_attributes>10;20;180;20</additional_attributes></element><element><id>Text</id><coordinates><x>792</x><y>1089</y><w>477</w><h>297</h></coordinates><panel_attributes>----- * CONTRIBUTOR * -----
+Board.belongsToMany(User, { as: "Contributors", through: Contributor, allowNull: false })
+User.belongsToMany(Board, { as: "Contributors", through: Contributor, allowNull: false });
 
------ * USER* -----
-User.hasMany(Comment);
+----- * USER * -----
+User.hasMany(Comment, { as: "Tasks", foreignKey: { allowNull: false } });
 
 ----- * COMMENT * -----
-Comment.belongsTo(User);
+Comment.belongsTo(User, { foreignKey: { allowNull: false } });
 
------ * BOARD * -----
-Board.hasMany(Category);
-Board.hasMany(Task);
+----- * BOARD* -----
+Board.hasMany(Category, { as: "Categories", foreignKey: { allowNull: false } });
+Board.hasMany(Task, { as: "Tasks", foreignKey: { allowNull: false } });
 
 ----- * CATEGORY * -----
-Category.belongsTo(Board);
+Category.belongsTo(Board, { foreignKey: { allowNull: false } });
 
 ----- * TASK * -----
-Task.hasMany(Comment);
-Task.hasMany(SubTask);
-Task.belongsTo(Category);
+Task.hasMany(Comment, { as: "Comments", foreignKey: { allowNull: false } });
+Task.hasMany(SubTask, { as: "SubTasks", foreignKey: { allowNull: false } });
+Task.belongsTo(Category, { foreignKey: { allowNull: false } });
 
 halign=center
 
