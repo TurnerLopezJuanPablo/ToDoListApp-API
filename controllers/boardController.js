@@ -1,4 +1,4 @@
-import { Board, Task } from "../models/index.js";
+import { Board, Category, SubTask, Task, Comment } from "../models/index.js";
 
 class BoardController {
     constructor() { }
@@ -11,13 +11,30 @@ class BoardController {
                     "title",
                     "description",
                     "order",
-                ], 
+                ],
                 include: [
                     {
                         model: Task,
                         as: 'Tasks',
                         attributes: ['id'],
+                        include: [
+                            {
+                                model: SubTask,
+                                as: 'SubTasks',
+                                attributes: ['id'],
+                            },
+                            {
+                                model: Comment,
+                                as: 'Comments',
+                                attributes: ['id'],
+                            }
+                        ]
                     },
+                    {
+                        model: Category,
+                        as: 'Categories',
+                        attributes: ['id'],
+                    }
                 ]
             });
             if (result.length == 0) {
@@ -99,6 +116,7 @@ class BoardController {
                     where: {
                         id,
                     },
+                    individualHooks: true,
                 }
             );
 

@@ -48,11 +48,11 @@ Board.init({
 });
 
 Board.beforeCreate(async (board, options) => {
-    board.title = await generateUniqueTitle(board.title, Board);
+    board.title = await generateUniqueTitle(board.title, Board, 0, null);
 });
 
 Board.beforeUpdate(async (board, options) => {
-    board.title = await generateUniqueTitle(board.title, Board);
+    board.title = await generateUniqueTitle(board.title, Board, 0, null);
 });
 
 export default Board;

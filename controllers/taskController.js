@@ -1,4 +1,5 @@
-import { Task, Board, Contributor, SubTask } from "../models/index.js";
+import { Task, Board, SubTask } from "../models/index.js";
+import sequelize from "../connection/connection.js"
 
 class TaskController {
     constructor() { }
@@ -125,16 +126,21 @@ class TaskController {
                 throw error;
             }
 
+            const { user } = req;
+
             const result = await Task.update(
                 {
                     title,
                     description,
                     priority,
+                    updatedAt: sequelize.literal('CURRENT_TIMESTAMP'),
+                    updatedBy: user.idUser
                 },
                 {
                     where: {
                         id,
                     },
+                    individualHook: true,
                 }
             );
 
@@ -143,22 +149,6 @@ class TaskController {
                 error.status = 404;
                 throw error;
             };
-
-            // const { user } = req;
-
-            // const result2 = await Contributor.update(
-            //     {
-            //         updatedAt: new Date()
-            //     },
-            //     {
-            //         where: {
-            //             userId: user.idUser,
-            //             taskId: id
-            //         },
-            //     }
-            // );
-
-            // if (!result2) throw new Error("Failed to create the task");
 
             res.status(200).send({
                 success: true,
@@ -239,7 +229,7 @@ class TaskController {
 
     addTaskToAnotherBoard = async (req, res, next) => {
         try {
-            const { id, groupId } = req.params;
+            const { id, boardId } = req.params;
 
             const existingTask = await Task.findByPk(id);
             if (!existingTask) {
@@ -248,22 +238,22 @@ class TaskController {
                 throw error;
             }
 
-            const existingGroup = await Board.findByPk(groupId);
-            if (!existingGroup) {
-                const error = new Error("Group not found with id: " + groupId);
+            const existingBoard = await Board.findByPk(boardId);
+            if (!existingBoard) {
+                const error = new Error("Board not found with id: " + boardId);
                 error.status = 404;
                 throw error;
             }
 
             const result = await Task.update(
-                { GroupId: groupId },
+                { BoardId: boardId },
                 { where: { id: id } }
             );
 
             if (result[0] >= 0) {
                 res.status(200).send({
                     success: true,
-                    message: "Task with id " + id + " updated successfully to Group with id " + groupId,
+                    message: "Task with id " + id + " added successfully to Board with id " + boardId,
                 });
             } else {
                 const error = new Error("Error updating Task with id: " + id);

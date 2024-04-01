@@ -4,17 +4,17 @@ import { Task } from '../models/index.js';
 const seedTask = async (numTasks) => {
     try {
         const fakeTasks = Array.from({ length: numTasks }, () => ({
-            title: faker.lorem.words(2),
-            description: faker.lorem.sentence(),
+            title: faker.commerce.productName(),
+            description: faker.commerce.productDescription(),
+            done: Math.floor(Math.random() * 2),
+            starred: Math.floor(Math.random() * 2),
             due_date: faker.date.future(),
             priority: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
-            GroupId: faker.datatype.number({ min: 1, max: 3}),
-            CategoryId: faker.datatype.number({ min: 1, max: 4}),
-            UserId: 1
+            BoardId: Math.floor(Math.random() * 3) + 1,
         }));
 
         await Task.bulkCreate(fakeTasks);
-        console.log(`*****SEED***** ${numTasks} tasks seeded successfully.`);
+        console.log(`********** SEED TASK ********** ${numTasks} tasks seeded successfully.`);
     } catch (error) {
         console.log('Error seeding tasks:', error.message);
     }

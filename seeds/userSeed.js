@@ -23,7 +23,7 @@ const seedUser = async (numUsers) => {
 
         const users = [manualUser, ...fakeUsers];
         await User.bulkCreate(users);
-        console.log(`*****SEED***** ${numUsers} users seeded successfully.`);
+        console.log(`********** SEED USER ********** ${numUsers} users seeded successfully.`);
     } catch (error) {
         console.log('Error seeding users:', error.message);
     }

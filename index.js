@@ -5,12 +5,12 @@ import indexRoutes from "./routes/indexRoutes.js"
 import cors from 'cors';
 
 // Seeds
-// import seedUser from './seeds/userSeed.js';
-// import seedTask from './seeds/taskSeed.js';
-// import seedGroup from './seeds/groupSeed.js';
-// import seedCategory from './seeds/categorySeed.js';
+import seedUser from './seeds/userSeed.js';
+import seedBoard from './seeds/boardSeed.js';
+import seedCategory from './seeds/categorySeed.js';
+import seedTask from './seeds/taskSeed.js';
+import seedContributor from './seeds/contributorSeed.js';
 // import seedComment from './seeds/commentSeed.js';
-// import seedUserTask from './seeds/seedUserTask.js';
 
 const app = express()
 
@@ -56,11 +56,11 @@ connection.sync({ force: forceSync })
   })
   .then(async () => {
     if (forceSync) {
-      // await seedUser(5);
-      // await seedGroup(3);
-      // await seedCategory(4);
-      // await seedTask(10);
+      await seedUser(5);
+      await seedBoard(3);
+      await seedContributor(6);
+      await seedCategory(8);
+      await seedTask(15);
       // await seedComment(8);
-      // await seedUserTask(3);
     }
   });

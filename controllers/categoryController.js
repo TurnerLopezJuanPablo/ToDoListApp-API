@@ -9,12 +9,12 @@ class CategoryController {
                 attributes: [
                     "id",
                     "title",
-                    "UserId",
+                    "BoardId",
                 ],
                 include: [
                     {
                         model: Task,
-                        as: 'tasks',
+                        as: 'Tasks',
                         attributes: ['id'],
                     },
                 ]
@@ -40,12 +40,12 @@ class CategoryController {
                 attributes: [
                     "id",
                     "title",
-                    "UserId",
+                    "BoardId",
                 ],
                 include: [
                     {
                         model: Task,
-                        as: 'tasks',
+                        as: 'Tasks',
                         attributes: ['id'],
                     },
                 ]
@@ -67,9 +67,10 @@ class CategoryController {
 
     createCategory = async (req, res, next) => {
         try {
-            const { title } = req.body;
+            const { title, BoardId } = req.body;
             const result = await Category.create({
                 title,
+                BoardId
             });
             if (!result) throw new Error("Failed to create the category");
             res
@@ -93,6 +94,7 @@ class CategoryController {
                     where: {
                         id,
                     },
+                    individualHooks: true,
                 }
             );
 

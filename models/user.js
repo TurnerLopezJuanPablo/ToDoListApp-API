@@ -125,6 +125,10 @@ User.init({
             },
         }
     },
+    activeUser: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
 }, {
     sequelize: connection,
     modelName: "User",

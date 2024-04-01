@@ -1,4 +1,4 @@
-import { Category, Board, User, Task, Comment } from "../models/index.js";
+import { Board, Category, Contributor, SubTask, Task, User, Comment } from "../models/index.js";
 import sequelize from '../connection/connection.js';
 import { generateToken } from "../utils/token.js";
 import bcrypt from "bcrypt";
@@ -33,6 +33,11 @@ class UserController {
             if (!result) {
                 const error = new Error("No User found with Email: " + email);
                 error.status = 404;
+                throw error;
+            }
+            if (!result.activeUser) {
+                const error = new Error(`User with email ${email} is no longer active. Please go to the HELP section to reactivate the account.`);
+                error.status = 403;
                 throw error;
             }
 
@@ -84,7 +89,7 @@ class UserController {
                 email,
                 password,
             } = req.body;
-            
+
             const result = await User.create({
                 userName,
                 name,
@@ -147,7 +152,7 @@ class UserController {
     getAllData = async (req, res, next) => {
         try {
             const { user } = req;
-            const id = user.idUser
+            const id = user.idUser;
             const result = await User.findOne({
                 where: {
                     id,
@@ -162,28 +167,58 @@ class UserController {
                     "emailConfirmed",
                     "oldUserName"
                 ],
-                // include: [
-                //     {
-                //         model: Category,
-                //         as: 'categories',
-                //         attributes: ['id', 'title'],
-                //     },
-                //     {
-                //         model: Board,
-                //         as: 'groups',
-                //         attributes: ['id', 'title', 'description', 'order'],
-                //     },
-                //     {
-                //         model: Task,
-                //         as: 'tasks',
-                //         attributes: ['id', 'title', 'description', 'done', 'due_date', 'priority', 'order', 'parentId', 'GroupId', 'CategoryId'],
-                //     },
-                //     {
-                //         model: Comment,
-                //         as: 'comments',
-                //         attributes: ['id', 'title', 'created_at'],
-                //     },
-                // ]
+                include: [
+                    {
+                        model: Contributor,
+                        as: 'Contributes',
+                        attributes: ['id', 'createdAt', 'updatedAt', 'permit'],
+                        include: [
+                            {
+                                model: Board,
+                                as: 'Board',
+                                attributes: ['id', 'title', 'description'],
+                                include: [
+                                    {
+                                        model: Category,
+                                        as: 'Categories',
+                                        attributes: ['id', 'title']
+                                    },
+                                    {
+                                        model: Task,
+                                        as: 'Tasks',
+                                        attributes: [
+                                            'id',
+                                            'title',
+                                            'description',
+                                            'done',
+                                            'starred',
+                                            'due_date',
+                                            'priority',
+                                            'order',
+                                            'assigned',
+                                            'createdAt',
+                                            'updatedAt',
+                                            'updatedBy',
+                                            'CategoryId',
+                                        ],
+                                        include: [
+                                            {
+                                                model: SubTask,
+                                                as: 'SubTasks',
+                                                attributes: ['id', 'text', 'done', 'order']
+                                            },
+                                            {
+                                                model: Comment,
+                                                as: 'Comments',
+                                                attributes: ['id', 'text', 'created_At']
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
             });
 
             if (!result) {
@@ -192,13 +227,11 @@ class UserController {
                 throw error;
             }
 
-            res
-                .status(200)
-                .send({ success: true, message: "User found with id: " + id, result });
+            res.status(200).send({ success: true, message: "User found with id: " + id, result });
         } catch (error) {
             next(error);
         }
-    };
+    }
 
     logOut = async (req, res, next) => {
         try {
