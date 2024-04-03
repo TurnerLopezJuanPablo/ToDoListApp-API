@@ -104,6 +104,56 @@ class SubTaskController {
         }
     };
 
+    generateNewOrder = async (req, res, next) => {
+        try {
+            const { TaskId } = req.params;
+            const { orderedSubTasks } = req.body;
+            const subTasksToOrder = await SubTask.findAll({
+                attributes: [
+                    "id",
+                    "order",
+                ],
+                where: {
+                    TaskId: TaskId
+                }
+            });
+
+            if (subTasksToOrder.length == 0) {
+                const error = new Error("SubTasks not found");
+                error.status = 400;
+                throw error;
+            }
+
+            if (orderedSubTasks.length !== subTasksToOrder.length) {
+                const error = new Error("Arrays do not have the same length");
+                error.status = 400;
+                throw error;
+            }
+
+            const orderedSubTasksJSON = JSON.stringify(orderedSubTasks);
+            const subTasksToOrderJSON = JSON.stringify(subTasksToOrder);
+
+            if (orderedSubTasksJSON === subTasksToOrderJSON) {
+                console.log("Arrays are the same");
+            } else {
+                console.log("Arrays are not the same");
+            }
+
+            orderedSubTasks.sort((a, b) => a.order - b.order);
+
+            for (let i = 0; i < orderedSubTasks.length; i++) {
+                const subTask = orderedSubTasks[i];
+                await SubTask.update({ order: i + 1 }, { where: { id: subTask.id } });
+            }
+
+            res
+                .status(200)
+                .send({ success: true, message: "SubTasks with with Task: " + TaskId + " have been reordered", orderedSubTasks: orderedSubTasks });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     toggleDone = async (req, res, next) => {
         try {
             const { id } = req.params;

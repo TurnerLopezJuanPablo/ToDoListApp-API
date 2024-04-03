@@ -18,6 +18,7 @@ taskRoutes.post("/create", taskController.createTask);
 
 // PUT 
 taskRoutes.put("/:id/update", taskController.updateTask);
+taskRoutes.put("/:boardId/generateNewOrder", taskController.generateNewOrder);
 
 // PATCH
 taskRoutes.patch("/:id/toggleDone", taskController.toggleDone);

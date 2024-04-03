@@ -18,6 +18,7 @@ subTaskRoutes.post("/create", subTaskController.createSubTask);
 
 // PUT 
 subTaskRoutes.put("/:id/update", subTaskController.updateSubTask);
+subTaskRoutes.put("/:TaskId/generateNewOrder", subTaskController.generateNewOrder);
 
 // PATCH
 subTaskRoutes.patch("/:id/toggleDone", subTaskController.toggleDone);

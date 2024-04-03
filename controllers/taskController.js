@@ -159,6 +159,56 @@ class TaskController {
         }
     };
 
+    generateNewOrder = async (req, res, next) => {
+        try {
+            const { boardId } = req.params;
+            const { orderedTasks } = req.body;
+            const tasksToOrder = await Task.findAll({
+                attributes: [
+                    "id",
+                    "order",
+                ],
+                where: {
+                    BoardId: boardId
+                }
+            });
+
+            if (tasksToOrder.length == 0) {
+                const error = new Error("Tasks not found");
+                error.status = 400;
+                throw error;
+            }
+
+            if (orderedTasks.length !== tasksToOrder.length) {
+                const error = new Error("Arrays do not have the same length");
+                error.status = 400;
+                throw error;
+            }
+
+            const orderedTasksJSON = JSON.stringify(orderedTasks);
+            const tasksToOrderJSON = JSON.stringify(tasksToOrder);
+
+            if (orderedTasksJSON === tasksToOrderJSON) {
+                console.log("Arrays are the same");
+            } else {
+                console.log("Arrays are not the same");
+            }
+
+            orderedTasks.sort((a, b) => a.order - b.order);
+
+            for (let i = 0; i < orderedTasks.length; i++) {
+                const task = orderedTasks[i];
+                await Task.update({ order: i + 1 }, { where: { id: task.id } });
+            }
+
+            res
+                .status(200)
+                .send({ success: true, message: "Tasks with with BoardId: " + boardId + " have been reordered", orderedTasks: orderedTasks });
+        } catch (error) {
+            next(error);
+        }
+    };
+
     toggleDone = async (req, res, next) => {
         try {
             const { id } = req.params;
