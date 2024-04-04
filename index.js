@@ -11,7 +11,7 @@ import seedCategory from './seeds/categorySeed.js';
 import seedTask from './seeds/taskSeed.js';
 import seedContributor from './seeds/contributorSeed.js';
 import seedSubTask from './seeds/subTaskSeed.js';
-// import seedComment from './seeds/commentSeed.js';
+import seedComment from './seeds/commentSeed.js';
 
 const app = express()
 
@@ -59,10 +59,10 @@ connection.sync({ force: forceSync })
     if (forceSync) {
       await seedUser(5);
       await seedBoard(3);
-      await seedContributor(6);
+      await seedContributor();
       await seedCategory(8);
       await seedTask(15);
       await seedSubTask(15);
-      // await seedComment(8);
+      await seedComment(10);
     }
   });

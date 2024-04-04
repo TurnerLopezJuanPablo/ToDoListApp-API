@@ -3,6 +3,7 @@ import sequelize from '../connection/connection.js';
 import { generateToken } from "../utils/token.js";
 import bcrypt from "bcrypt";
 import moment from "moment";
+import { Op } from "sequelize";
 
 class UserController {
     constructor() { }
@@ -231,7 +232,40 @@ class UserController {
         } catch (error) {
             next(error);
         }
-    }
+    };
+
+    getUsersBySearch = async (req, res, next) => {
+        try {
+            const { search } = req.params;
+            const result = await User.findAndCountAll({
+                where: {
+                    userName: {
+                        [Op.like]: `%${search}%`
+                    },
+                    activeUser: true,
+                },
+                attributes: [
+                    "userName",
+                    "name",
+                    "surname",
+                    "email",
+                    "oldUserName"
+                ],
+                limit: 15
+            });
+            if (!result) {
+                const error = new Error("No users found with search: " + search);
+                error.status = 404;
+                throw error;
+            }
+
+            res
+                .status(200)
+                .send({ success: true, message: "Users found with search: " + search, result });
+        } catch (error) {
+            next(error);
+        }
+    };
 
     logOut = async (req, res, next) => {
         try {
@@ -427,7 +461,33 @@ class UserController {
         } catch (error) {
             next(error);
         };
-    }
+    };
+
+    setInactiveToUser = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const result = await User.update(
+                {
+                    activeUser: false
+                },
+                {
+                    where: { id },
+                }
+            );
+
+            if (!result) {
+                const error = new Error("No user found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            res
+                .status(200)
+                .send({ success: true, message: "User with id: " + id + " was set to inactive" });
+        } catch (error) {
+            next(error);
+        }
+    };
 
     deleteUser = async (req, res, next) => {
         try {

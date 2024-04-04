@@ -1,24 +1,39 @@
 import faker from 'faker';
 import { Contributor } from '../models/index.js';
+import { permit } from '../utils/utils.js';
 
-const seedContributor = async (numContributor) => {
+const seedContributor = async () => {
     try {
-        // const manualContributor = {
-        //     permit: 'owner',
-        //     BoardId: 1,
-        //     UserId: 1,
-        // };
+        const fakeContributors = [
+            {
+                permit: permit.Owner,
+                BoardId: 1,
+                UserId: 1,
+            }, 
+            {
+                permit: permit.Editor,
+                BoardId: 1,
+                UserId: 2,
+            }, 
+            {
+                permit: permit.Owner,
+                BoardId: 2,
+                UserId: 3,
+            }, 
+            {
+                permit: permit.Reader,
+                BoardId: 2,
+                UserId: 4,
+            }, 
+            {
+                permit: permit.Commentor,
+                BoardId: 2,
+                UserId: 5,
+            }
+        ];
 
-        // await Contributor.bulkCreate(manualContributor);
-        // const fakeContributors = Array.from({ length: numContributor - 1 }, () => ({
-        //     permit: ['reader', 'commentor', 'editor'][Math.floor(Math.random() * 3)],
-        //     BoardId: Math.floor(Math.random() * 3) + 1,
-        //     UserId: Math.floor(Math.random() * 5) + 1,
-        // }));
-
-        // const fakeContributorsArr = [manualContributor, ...fakeContributors];
-        // await Contributor.bulkCreate(fakeContributorsArr);
-        console.log(`********** SEED CONTRIBUTOR ********** ${numContributor} contributors seeded successfully.`);
+        await Contributor.bulkCreate(fakeContributors);
+        console.log(`********** SEED CONTRIBUTOR ********** Contributors seeded successfully.`);
     } catch (error) {
         console.log('Error seeding contributors:', error.message);
     }

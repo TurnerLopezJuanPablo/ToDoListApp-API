@@ -36,11 +36,6 @@ Board.init({
             },
         },
     },
-    order: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0
-    },
 }, {
     sequelize: connection,
     modelName: "Board",

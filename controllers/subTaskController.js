@@ -1,4 +1,4 @@
-import { SubTask } from "../models/index.js";
+import { Contributor, SubTask } from "../models/index.js";
 
 class SubTaskController {
     constructor() { }
@@ -214,6 +214,25 @@ class SubTaskController {
             });
         }
     };
+
+    checkPermit = async (userId, boardId, permittedRoles) => {
+        const contributor = await Contributor.findOne({ where: { UserId: userId, BoardId: boardId } });
+
+        if (!contributor) {
+            const error = new Error(`No contributor found with UserId: ${userId} and BoardId: ${boardId}`);
+            error.status = 404;
+            throw error;
+        }
+
+        if (!permittedRoles.includes(contributor.permit)) {
+            const error = new Error(`User does not have permission to perform this action`);
+            error.status = 403;
+            throw error;
+        }
+
+        return true;
+    };
+
 }
 
 export default SubTaskController;

@@ -1,4 +1,5 @@
-import { Board, Category, SubTask, Task, Comment } from "../models/index.js";
+import { Board, Category, SubTask, Task, Comment, Contributor } from "../models/index.js";
+import { permit } from "../utils/utils.js";
 
 class BoardController {
     constructor() { }
@@ -10,7 +11,6 @@ class BoardController {
                     "id",
                     "title",
                     "description",
-                    "order",
                 ],
                 include: [
                     {
@@ -61,7 +61,6 @@ class BoardController {
                     "id",
                     "title",
                     "description",
-                    "order",
                 ], include: [
                     {
                         model: Task,
@@ -88,12 +87,24 @@ class BoardController {
     createBoard = async (req, res, next) => {
         try {
             const { title, description } = req.body;
-            const { user } = req;
             const result = await Board.create({
                 title,
                 description,
             });
             if (!result) throw new Error("Failed to create the board");
+
+            const { user } = req;
+            const result2 = await Contributor.create({
+                permit: permit.Owner,
+                UserId: user.idUser,
+                BoardId: result.id,
+            });
+            if (!result2) {
+                await Board.destroy({ where: { id: result.id } }).then(() => {
+                    throw new Error("Failed to create contributor");
+                })
+            }
+
             res
                 .status(200)
                 .send({ success: true, message: "Board created successfully" });
@@ -106,6 +117,9 @@ class BoardController {
         try {
             const { id } = req.params;
             const { title, description } = req.body;
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, id);
 
             const result = await Board.update(
                 {
@@ -138,6 +152,9 @@ class BoardController {
     deleteBoard = async (req, res, next) => {
         try {
             const { id } = req.params;
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, id);
 
             const result = await Board.destroy({
                 where: { id: id },
@@ -155,11 +172,26 @@ class BoardController {
                 });
             }
         } catch (error) {
-            res.status(500).send({
-                success: false,
-                message: "Error trying to delete Board with id: " + id + error.message,
-            });
+            next(error);
         }
+    };
+
+    checkPermit = async (userId, boardId) => {
+        const contributor = await Contributor.findOne({ where: { UserId: userId, BoardId: boardId } });
+
+        if (!contributor) {
+            const error = new Error(`No contributor found with UserId: ${userId} and BoardId: ${boardId}`);
+            error.status = 404;
+            throw error;
+        }
+
+        if (contributor.permit !== permit.Owner) {
+            const error = new Error(`User does not have permission to perform this action`);
+            error.status = 403;
+            throw error;
+        }
+
+        return true;
     };
 }
 

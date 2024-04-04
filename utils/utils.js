@@ -1,8 +1,13 @@
+export const permit = Object.freeze({
+    Owner: 'owner',
+    Editor: 'editor',
+    Reader: 'reader',
+    Commentor: 'commentor',
+});
+
 export const generateUniqueTitle = async (desiredName, Model, id, fieldName) => {
     let newName = desiredName;
     let count = 1;
-
-    console.log(id, fieldName, "**************************");
 
     if (id === 0 || fieldName === null) {
         while (await Model.findOne({ where: { title: newName } })) {
