@@ -1,5 +1,6 @@
-import { Task, Board, SubTask } from "../models/index.js";
-import sequelize from "../connection/connection.js"
+import { Task, SubTask, Comment, Contributor } from "../models/index.js";
+import sequelize from "../connection/connection.js";
+import { permit } from "../utils/utils.js";
 
 class TaskController {
     constructor() { }
@@ -26,8 +27,13 @@ class TaskController {
                     {
                         model: SubTask,
                         as: 'SubTasks',
-                        attributes: ['id'],
+                        attributes: ['id', 'text', 'done', 'order'],
                     },
+                    {
+                        model: Comment,
+                        as: 'Comments',
+                        attributes: ['id', 'text'],
+                    }
                 ],
             });
             if (result.length == 0) {
@@ -69,8 +75,13 @@ class TaskController {
                     {
                         model: SubTask,
                         as: 'SubTasks',
-                        attributes: ['id'],
+                        attributes: ['id', 'text', 'done', 'order'],
                     },
+                    {
+                        model: Comment,
+                        as: 'Comments',
+                        attributes: ['id', 'text'],
+                    }
                 ],
             });
 
@@ -90,28 +101,26 @@ class TaskController {
 
     createTask = async (req, res, next) => {
         try {
-            const { title, description, due_date, priority, boardId } = req.body;
+            const { title, description, due_date, priority: newPriority, BoardId } = req.body;
             const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId);
+
             const result = await Task.create({
                 title,
                 description,
                 due_date,
-                priority: priority || 'none',
-                BoardId: boardId
+                priority: newPriority,
+                BoardId
             });
+    
             if (!result) throw new Error("Failed to create the task");
-
-            // const result2 = await Contributor.create({
-            //     userId: user.idUser,
-            //     taskId: result.id,
-            // });
-            // if (!result2) throw new Error("Failed to create the task");
 
             res
                 .status(200)
                 .send({ success: true, message: "Task created successfully" });
         } catch (error) {
-            res.status(400).send({ success: false, message: error.message });
+            next(error);
         }
     };
 
@@ -277,44 +286,6 @@ class TaskController {
         }
     };
 
-    addTaskToAnotherBoard = async (req, res, next) => {
-        try {
-            const { id, boardId } = req.params;
-
-            const existingTask = await Task.findByPk(id);
-            if (!existingTask) {
-                const error = new Error("Task not found with id: " + id);
-                error.status = 404;
-                throw error;
-            }
-
-            const existingBoard = await Board.findByPk(boardId);
-            if (!existingBoard) {
-                const error = new Error("Board not found with id: " + boardId);
-                error.status = 404;
-                throw error;
-            }
-
-            const result = await Task.update(
-                { BoardId: boardId },
-                { where: { id: id } }
-            );
-
-            if (result[0] >= 0) {
-                res.status(200).send({
-                    success: true,
-                    message: "Task with id " + id + " added successfully to Board with id " + boardId,
-                });
-            } else {
-                const error = new Error("Error updating Task with id: " + id);
-                error.status = 400;
-                throw error;
-            }
-        } catch (error) {
-            next(error);
-        }
-    };
-
     deleteTask = async (req, res, next) => {
         try {
             const { id } = req.params;
@@ -342,6 +313,23 @@ class TaskController {
         }
     };
 
+    checkPermit = async (userId, boardId) => {
+        const contributor = await Contributor.findOne({ where: { UserId: userId, BoardId: boardId } });
+
+        if (!contributor) {
+            const error = new Error(`No contributor found with UserId: ${userId} and BoardId: ${boardId}`);
+            error.status = 404;
+            throw error;
+        }
+
+        if (contributor.permit !== permit.Owner && contributor.permit !== permit.Editor) {
+            const error = new Error(`User does not have permission to perform this action`);
+            error.status = 403;
+            throw error;
+        }
+
+        return true;
+    };
 }
 
 export default TaskController;

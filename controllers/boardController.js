@@ -1,5 +1,6 @@
 import { Board, Category, SubTask, Task, Comment, Contributor } from "../models/index.js";
 import { permit } from "../utils/utils.js";
+import sequelize from "../connection/connection.js";
 
 class BoardController {
     constructor() { }
@@ -144,6 +145,112 @@ class BoardController {
                 success: true,
                 message: "Board with id: " + id + " updated successfully",
             });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    changePermit = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const { idUserChangePermit, permit: newPermit } = req.body;
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, id);
+
+            const contributor = await Contributor.findByPk(idUserChangePermit);
+            if (contributor && contributor.permit === permit.Owner) {
+                const error = new Error("Cannot change permit for user with Owner role");
+                error.status = 400;
+                throw error;
+            }
+
+            if (!Object.values(permit).includes(newPermit) || newPermit === permit.Owner) {
+                let errorMessage = '';
+
+                if (newPermit === permit.Owner) {
+                    errorMessage = 'Cannot change permit to owner';
+                } else {
+                    errorMessage = `Invalid permit: ${newPermit}`;
+                }
+
+                const error = new Error(errorMessage);
+                error.status = 400;
+                throw error;
+            }
+
+            const result = await Contributor.update(
+                {
+                    permit: newPermit,
+                    updatedAt: sequelize.literal('CURRENT_TIMESTAMP')
+                },
+                {
+                    where: { id: idUserChangePermit },
+                    individualHooks: true,
+                }
+            );
+
+            if (result[0] === 0) {
+                const error = new Error("Failed to update the permit");
+                error.status = 404;
+                throw error;
+            }
+
+            res.status(200).send({ success: true, message: "Permit updated successfully", result });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    setNewOwner = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const { idUserChangePermit } = req.body;
+            const { user } = req;
+
+            if (user.idUser === idUserChangePermit) {
+                const error = new Error("Cannot update permit for the same user");
+                error.status = 400;
+                throw error;
+            }
+
+            await this.checkPermit(user.idUser, id);
+
+            const result = await Contributor.update(
+                {
+                    permit: permit.Owner,
+                    updatedAt: sequelize.literal('CURRENT_TIMESTAMP')
+                },
+                {
+                    where: { id: idUserChangePermit },
+                    individualHooks: true,
+                }
+            );
+
+            if (result[0] === 0) {
+                const error = new Error("Failed to update the permit");
+                error.status = 404;
+                throw error;
+            }
+
+            const result2 = await Contributor.update(
+                {
+                    permit: permit.Editor,
+                    updatedAt: sequelize.literal('CURRENT_TIMESTAMP')
+                },
+                {
+                    where: { id: user.idUser },
+                    individualHooks: true,
+                }
+            );
+
+            if (result2[0] === 0) {
+                const error = new Error("Failed to update the permit");
+                error.status = 404;
+                throw error;
+            }
+
+            res.status(200).send({ success: true, message: "Permit updated successfully", result, result2 });
         } catch (error) {
             next(error);
         }

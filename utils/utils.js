@@ -5,6 +5,13 @@ export const permit = Object.freeze({
     Commentor: 'commentor',
 });
 
+export const priority = Object.freeze({
+    High: 'high',
+    Medium: 'medium',
+    Low: 'low',
+    None: 'none'
+});
+
 export const generateUniqueTitle = async (desiredName, Model, id, fieldName) => {
     let newName = desiredName;
     let count = 1;

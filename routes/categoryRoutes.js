@@ -2,7 +2,7 @@ import { Router } from "express";
 import validateAccess from "../utils/validateAccess.js"
 
 const categoryRoutes = Router();
-import CategoryController from "../Controllers/categoryController.js";
+import CategoryController from "../controllers/categoryController.js";
 
 const categoryController = new CategoryController();
 

@@ -19,6 +19,10 @@ boardRoutes.post("/create", boardController.createBoard);
 // PUT 
 boardRoutes.put("/:id/update", boardController.updateBoard);
 
+// PATCH
+boardRoutes.patch("/:id/changePermit", boardController.changePermit);
+boardRoutes.patch("/:id/setNewOwner", boardController.setNewOwner);
+
 // DELETE
 boardRoutes.delete("/:id/delete", boardController.deleteBoard);
 

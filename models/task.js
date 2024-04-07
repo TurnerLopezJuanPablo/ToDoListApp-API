@@ -1,6 +1,6 @@
 import { DataTypes, Model, Sequelize } from 'sequelize';
 import connection from "../connection/connection.js";
-import { generateUniqueTitle } from '../utils/utils.js';
+import { generateUniqueTitle, priority } from '../utils/utils.js';
 
 class Task extends Model { }
 
@@ -49,7 +49,12 @@ Task.init({
         allowNull: true
     },
     priority: {
-        type: DataTypes.ENUM('low', 'medium', 'high', 'none'),
+        type: DataTypes.ENUM(
+            priority.High,
+            priority.Medium,
+            priority.Low,
+            priority.None,
+        ),
         defaultValue: 'none'
     },
     order: {
@@ -94,7 +99,7 @@ Task.beforeCreate(async (taskInstance, options) => {
 
 Task.beforeUpdate(async (taskInstance, options) => {
     trimFields(taskInstance);
-    
+
     taskInstance.title = await generateUniqueTitle(taskInstance.title, Task, Task.BoardId, "BoardId");
 });
 

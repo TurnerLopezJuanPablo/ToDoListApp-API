@@ -1,5 +1,6 @@
 import faker from 'faker';
 import { Task } from '../models/index.js';
+import { priority } from '../utils/utils.js';
 
 const seedTask = async (numTasks) => {
     try {
@@ -9,7 +10,7 @@ const seedTask = async (numTasks) => {
             done: Math.floor(Math.random() * 2),
             starred: Math.floor(Math.random() * 2),
             due_date: faker.date.future(),
-            priority: ['low', 'medium', 'high'][Math.floor(Math.random() * 3)],
+            priority: Object.values(priority)[Math.floor(Math.random() * Object.keys(priority).length)],
             BoardId: Math.floor(Math.random() * 3) + 1,
         }));
 
