@@ -23,6 +23,7 @@ taskRoutes.put("/:boardId/generateNewOrder", taskController.generateNewOrder);
 // PATCH
 taskRoutes.patch("/:id/toggleDone", taskController.toggleDone);
 taskRoutes.patch("/:id/toggleStarred", taskController.toggleStarred);
+taskRoutes.patch("/:id/asignUserToTask", taskController.asignUserToTask);
 
 // DELETE
 taskRoutes.delete("/:id/delete", taskController.deleteTask);

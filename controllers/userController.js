@@ -282,23 +282,15 @@ class UserController {
     updatePassword = async (req, res, next) => {
         try {
             let result;
-            const { id } = req.params;
-            const {
-                oldPassword,
-                newPassword,
-            } = req.body;
+            const { oldPassword, newPassword } = req.body;
 
-            const user = await User.findOne({
+            const { user } = req;
+
+            const userResult = await User.findOne({
                 where: {
-                    id: id,
+                    id: user.idUser,
                 },
             });
-
-            if (!user) {
-                const error = new Error("No user found with id: " + id);
-                error.status = 404;
-                throw error;
-            }
 
             if (oldPassword == null || oldPassword == "") {
                 const error = new Error(`The old password provided is empty or null`);
@@ -312,7 +304,13 @@ class UserController {
                 throw error;
             }
 
-            const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+            if (newPassword === oldPassword) {
+                const error = new Error("The new password cannot be the same as the old password");
+                error.status = 400;
+                throw error;
+            }
+
+            const passwordMatch = await bcrypt.compare(oldPassword, userResult.password);
 
             if (passwordMatch) {
                 const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9]).{8,}$/;
@@ -325,7 +323,7 @@ class UserController {
                 result = await User.update(
                     { password: newPassword },
                     {
-                        where: { id },
+                        where: { id: user.idUser },
                         individualHooks: true,
                     }
                 );
@@ -352,28 +350,12 @@ class UserController {
 
     updateUser = async (req, res, next) => {
         try {
-            const { id } = req.params;
-            const {
-                name,
-                surname,
-                birthDate,
-            } = req.body;
+            const { user } = req;
+            const { name, surname, birthDate } = req.body;
 
             if (!name || !surname || !birthDate) {
                 const error = new Error("One or more fields are empty or null");
                 error.status = 400;
-                throw error;
-            }
-
-            const user = await User.findOne({
-                where: {
-                    id: id,
-                },
-            });
-
-            if (!user) {
-                const error = new Error("No user found with id: " + id);
-                error.status = 404;
                 throw error;
             }
 
@@ -385,7 +367,7 @@ class UserController {
                 },
                 {
                     where: {
-                        id,
+                        id: user.idUser,
                     },
                     individualHooks: true,
                 }
@@ -403,22 +385,8 @@ class UserController {
 
     updateUserName = async (req, res, next) => {
         try {
-            const { id } = req.params;
-            const {
-                newUserName,
-            } = req.body;
-
-            const user = await User.findOne({
-                where: {
-                    id: id,
-                },
-            });
-
-            if (!user) {
-                const error = new Error("No user found with id: " + id);
-                error.status = 404;
-                throw error;
-            }
+            const { user } = req;
+            const { newUserName } = req.body;
 
             if (newUserName == null || newUserName == "") {
                 const error = new Error(`The new UserName provided is empty or null`);
@@ -446,12 +414,12 @@ class UserController {
                     lastUserNameUpdated: sequelize.literal('CURRENT_TIMESTAMP')
                 },
                 {
-                    where: { id },
+                    where: { id: user.idUser },
                 }
             );
 
             if (!result[0]) {
-                throw new Error(`Failed to update the username of User with id: ${id}`);
+                throw new Error(`Failed to update the username of User with id: ${user.idUser}`);
             }
 
             res.status(200).send({
@@ -465,25 +433,25 @@ class UserController {
 
     setInactiveToUser = async (req, res, next) => {
         try {
-            const { id } = req.params;
+            const { user } = req;
             const result = await User.update(
                 {
                     activeUser: false
                 },
                 {
-                    where: { id },
+                    where: { id: user.idUser },
                 }
             );
 
             if (!result) {
-                const error = new Error("No user found with id: " + id);
+                const error = new Error("No user found with id: " + user.idUser);
                 error.status = 404;
                 throw error;
             }
 
             res
                 .status(200)
-                .send({ success: true, message: "User with id: " + id + " was set to inactive" });
+                .send({ success: true, message: "User with id: " + user.idUser + " was set to inactive" });
         } catch (error) {
             next(error);
         }
@@ -509,10 +477,7 @@ class UserController {
                 });
             }
         } catch (error) {
-            res.status(500).send({
-                success: false,
-                message: "Error trying to delete User with id: " + id + error.message,
-            });
+            next(error);
         }
     };
 

@@ -110,7 +110,7 @@ class BoardController {
                 .status(200)
                 .send({ success: true, message: "Board created successfully" });
         } catch (error) {
-            res.status(400).send({ success: false, message: error.message });
+            next(error);
         }
     };
 

@@ -12,6 +12,8 @@ export const priority = Object.freeze({
     None: 'none'
 });
 
+export const deletedCommentText = 'Deleted Comment...';
+
 export const generateUniqueTitle = async (desiredName, Model, id, fieldName) => {
     let newName = desiredName;
     let count = 1;

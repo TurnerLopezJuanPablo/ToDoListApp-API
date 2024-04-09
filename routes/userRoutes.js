@@ -21,10 +21,10 @@ userRoutes.get("/:search/getUsersBySearch", userController.getUsersBySearch);
 
 // POST
 userRoutes.post("/logout", userController.logOut);
-userRoutes.post("/:id/updatePassword", userController.updatePassword);
+userRoutes.post("/updatePassword", userController.updatePassword);
 
 // PUT 
-userRoutes.put("/:id/update", userController.updateUser);
+userRoutes.put("/update", userController.updateUser);
 
 // PATCH
 userRoutes.patch("/:id/updateUserName", userController.updateUserName);

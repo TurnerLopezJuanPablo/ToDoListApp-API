@@ -1,4 +1,5 @@
-import { Contributor, SubTask } from "../models/index.js";
+import { Contributor, SubTask, Task } from "../models/index.js";
+import { permit } from "../utils/utils.js";
 
 class SubTaskController {
     constructor() { }
@@ -59,7 +60,11 @@ class SubTaskController {
 
     createSubTask = async (req, res, next) => {
         try {
-            const { text, TaskId } = req.body;
+            const { text, TaskId, BoardId } = req.body;
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId, TaskId, null);
+
             const result = await SubTask.create({
                 text,
                 TaskId
@@ -70,14 +75,19 @@ class SubTaskController {
                 .status(200)
                 .send({ success: true, message: "SubTask created successfully" });
         } catch (error) {
-            res.status(400).send({ success: false, message: error.message });
+            next(error);
         }
     };
 
     updateSubTask = async (req, res, next) => {
         try {
             const { id } = req.params;
-            const { text } = req.body;
+            const { text, TaskId, BoardId } = req.body;
+
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId, TaskId, id);
+
             const result = await SubTask.update(
                 {
                     text
@@ -107,7 +117,12 @@ class SubTaskController {
     generateNewOrder = async (req, res, next) => {
         try {
             const { TaskId } = req.params;
-            const { orderedSubTasks } = req.body;
+            const { orderedSubTasks, BoardId } = req.body;
+
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId, TaskId, null);
+
             const subTasksToOrder = await SubTask.findAll({
                 attributes: [
                     "id",
@@ -123,6 +138,8 @@ class SubTaskController {
                 error.status = 400;
                 throw error;
             }
+
+            console.log(orderedSubTasks.length, subTasksToOrder.length);
 
             if (orderedSubTasks.length !== subTasksToOrder.length) {
                 const error = new Error("Arrays do not have the same length");
@@ -144,6 +161,7 @@ class SubTaskController {
             for (let i = 0; i < orderedSubTasks.length; i++) {
                 const subTask = orderedSubTasks[i];
                 await SubTask.update({ order: i + 1 }, { where: { id: subTask.id } });
+                subTask.order = i + 1;
             }
 
             res
@@ -157,6 +175,11 @@ class SubTaskController {
     toggleDone = async (req, res, next) => {
         try {
             const { id } = req.params;
+            const { BoardId, TaskId } = req.body;
+
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId, TaskId, id);
 
             const existingSubTask = await SubTask.findByPk(id);
             if (!existingSubTask) {
@@ -191,6 +214,11 @@ class SubTaskController {
     deleteSubTask = async (req, res, next) => {
         try {
             const { id } = req.params;
+            const { BoardId, TaskId } = req.body;
+
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId, TaskId, id);
 
             const result = await SubTask.destroy({
                 where: { id: id },
@@ -208,14 +236,11 @@ class SubTaskController {
                 });
             }
         } catch (error) {
-            res.status(500).send({
-                success: false,
-                message: "Error trying to delete SubTask with id: " + id + error.message,
-            });
+            next(error);
         }
     };
 
-    checkPermit = async (userId, boardId, permittedRoles) => {
+    checkPermit = async (userId, boardId, taskId, subTaskId) => {
         const contributor = await Contributor.findOne({ where: { UserId: userId, BoardId: boardId } });
 
         if (!contributor) {
@@ -224,15 +249,31 @@ class SubTaskController {
             throw error;
         }
 
-        if (!permittedRoles.includes(contributor.permit)) {
+        if (contributor.permit !== permit.Owner && contributor.permit !== permit.Editor) {
             const error = new Error(`User does not have permission to perform this action`);
             error.status = 403;
             throw error;
         }
 
+        const existingTask = await Task.findOne({ where: { id: taskId, boardId } });
+
+        if (!existingTask) {
+            const error = new Error("Task with ID: " + taskId + " does not match the provided board ID");
+            error.status = 404;
+            throw error;
+        }
+
+        if (subTaskId) {
+            const existingSubTask = await SubTask.findOne({ where: { id: subTaskId, TaskId: taskId } });
+            if (!existingSubTask) {
+                const error = new Error("SubTask with ID: " + subTaskId + " does not match the provided task ID");
+                error.status = 404;
+                throw error;
+            }
+        }
+
         return true;
     };
-
 }
 
 export default SubTaskController;

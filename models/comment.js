@@ -1,4 +1,4 @@
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model, Sequelize } from 'sequelize';
 import sequelize from '../connection/connection.js';
 import connection from "../connection/connection.js";
 
@@ -29,6 +29,20 @@ Comment.init({
         type: DataTypes.DATE,
         allowNull: false,
         defaultValue: sequelize.literal('CURRENT_TIMESTAMP')
+    },
+    updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: true,
+        defaultValue: null
+    },
+    deleted: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    oldText: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+        defaultValue: null,
     },
 }, {
     sequelize: connection,

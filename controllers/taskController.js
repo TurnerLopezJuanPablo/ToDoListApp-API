@@ -1,4 +1,4 @@
-import { Task, SubTask, Comment, Contributor } from "../models/index.js";
+import { Task, SubTask, Comment, Contributor, User } from "../models/index.js";
 import sequelize from "../connection/connection.js";
 import { permit, priority } from "../utils/utils.js";
 
@@ -233,6 +233,7 @@ class TaskController {
             for (let i = 0; i < orderedTasks.length; i++) {
                 const task = orderedTasks[i];
                 await Task.update({ order: i + 1 }, { where: { id: task.id } });
+                task.order = i + 1;
             }
 
             res
@@ -328,6 +329,59 @@ class TaskController {
                 message: "Starred update in Task with id: " + id,
                 updatedDoneValue: updatedStarredValue,
             });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    asignUserToTask = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const { BoardId } = req.body;
+
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId);
+
+            const existingUser = await User.findByPk(id);
+            if (!existingUser) {
+                const error = new Error("User not found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            const userContributes = await Contributor.findOne({ where: { UserId: existingUser.id, BoardId } });
+            if (!userContributes) {
+                const error = new Error("User is not a contributor for the specified board");
+                error.status = 404;
+                throw error;
+            }
+
+            const result = await Task.update(
+                {
+                    assigned: userContributes.UserId,
+                    updatedAt: sequelize.literal('CURRENT_TIMESTAMP'),
+                    updatedBy: user.idUser
+                },
+                {
+                    where: {
+                        id,
+                    },
+                    individualHooks: true,
+                }
+            );
+
+            if (result[0] === 0) {
+                const error = new Error("Failed to update the task with id: " + id);
+                error.status = 404;
+                throw error;
+            };
+
+            res.status(200).send({
+                success: true,
+                message: "User assigned correctly",
+            });
+
         } catch (error) {
             next(error);
         }
