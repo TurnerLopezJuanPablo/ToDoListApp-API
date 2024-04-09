@@ -15,8 +15,8 @@ userRoutes.use(validateAccess);
 
 // GET
 userRoutes.get("/me", userController.getLoggedUser);
-userRoutes.get("/:id", userController.getUserById);
 userRoutes.get("/getAllData", userController.getAllData)
+userRoutes.get("/:id", userController.getUserById);
 userRoutes.get("/:search/getUsersBySearch", userController.getUsersBySearch);
 
 // POST

@@ -146,10 +146,6 @@ class CategoryController {
                 });
             }
         } catch (error) {
-            // res.status(500).send({
-            //     success: false,
-            //     message: "Error trying to delete Category with id: " + id + error.message,
-            // });
             next(error);
         }
     };

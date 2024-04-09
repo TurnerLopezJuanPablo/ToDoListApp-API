@@ -1,6 +1,6 @@
 import { Task, SubTask, Comment, Contributor } from "../models/index.js";
 import sequelize from "../connection/connection.js";
-import { permit } from "../utils/utils.js";
+import { permit, priority } from "../utils/utils.js";
 
 class TaskController {
     constructor() { }
@@ -106,6 +106,18 @@ class TaskController {
 
             await this.checkPermit(user.idUser, BoardId);
 
+            switch (newPriority) {
+                case priority.High:
+                case priority.Medium:
+                case priority.Low:
+                case priority.None:
+                    break;
+                default:
+                    const error = new Error("Invalid priority value");
+                    error.status = 400;
+                    throw error;
+            }
+
             const result = await Task.create({
                 title,
                 description,
@@ -113,7 +125,7 @@ class TaskController {
                 priority: newPriority,
                 BoardId
             });
-    
+
             if (!result) throw new Error("Failed to create the task");
 
             res
@@ -127,21 +139,29 @@ class TaskController {
     updateTask = async (req, res, next) => {
         try {
             const { id } = req.params;
-            const { title, description, priority } = req.body;
-
-            if (priority !== undefined && !['low', 'medium', 'high', 'none'].includes(priority)) {
-                const error = new Error("Invalid priority value");
-                error.status = 400;
-                throw error;
-            }
+            const { title, description, priority: newPriority, BoardId } = req.body;
 
             const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId);
+
+            switch (newPriority) {
+                case priority.High:
+                case priority.Medium:
+                case priority.Low:
+                case priority.None:
+                    break;
+                default:
+                    const error = new Error("Invalid priority value");
+                    error.status = 400;
+                    throw error;
+            }
 
             const result = await Task.update(
                 {
                     title,
                     description,
-                    priority,
+                    priority: newPriority,
                     updatedAt: sequelize.literal('CURRENT_TIMESTAMP'),
                     updatedBy: user.idUser
                 },
@@ -149,7 +169,7 @@ class TaskController {
                     where: {
                         id,
                     },
-                    individualHook: true,
+                    individualHooks: true,
                 }
             );
 
@@ -172,6 +192,11 @@ class TaskController {
         try {
             const { boardId } = req.params;
             const { orderedTasks } = req.body;
+
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, boardId);
+
             const tasksToOrder = await Task.findAll({
                 attributes: [
                     "id",
@@ -221,10 +246,21 @@ class TaskController {
     toggleDone = async (req, res, next) => {
         try {
             const { id } = req.params;
+            const { BoardId } = req.body;
+
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId);
 
             const existingTask = await Task.findByPk(id);
             if (!existingTask) {
                 const error = new Error("Task not found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            if (existingTask.BoardId !== parseInt(BoardId)) {
+                const error = new Error("The Task's BoardId: " + existingTask.BoardId + " does not match the provided BoardId: " + BoardId);
                 error.status = 404;
                 throw error;
             }
@@ -255,10 +291,21 @@ class TaskController {
     toggleStarred = async (req, res, next) => {
         try {
             const { id } = req.params;
+            const { BoardId } = req.body;
+
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId);
 
             const existingTask = await Task.findByPk(id);
             if (!existingTask) {
                 const error = new Error("Task not found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            if (existingTask.BoardId !== parseInt(BoardId)) {
+                const error = new Error("The Task's BoardId: " + existingTask.BoardId + " does not match the provided BoardId: " + BoardId);
                 error.status = 404;
                 throw error;
             }
@@ -289,6 +336,24 @@ class TaskController {
     deleteTask = async (req, res, next) => {
         try {
             const { id } = req.params;
+            const { BoardId } = req.body;
+
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId);
+
+            const existingTask = await Task.findByPk(id);
+            if (!existingTask) {
+                const error = new Error("Task not found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            if (existingTask.BoardId !== parseInt(BoardId)) {
+                const error = new Error("The Task's BoardId: " + existingTask.BoardId + " does not match the provided BoardId: " + BoardId);
+                error.status = 404;
+                throw error;
+            }
 
             const result = await Task.destroy({
                 where: { id: id },
@@ -306,10 +371,7 @@ class TaskController {
                 });
             }
         } catch (error) {
-            res.status(500).send({
-                success: false,
-                message: "Error trying to delete Task with id: " + id + error.message,
-            });
+            next(error);
         }
     };
 

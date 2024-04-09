@@ -117,39 +117,6 @@ class UserController {
         }
     };
 
-    getUserById = async (req, res, next) => {
-        try {
-            const { id } = req.params;
-            const result = await User.findOne({
-                where: {
-                    id,
-                },
-                attributes: [
-                    "id",
-                    "userName",
-                    "name",
-                    "surname",
-                    "birthDate",
-                    "email",
-                    "emailConfirmed",
-                    "oldUserName"
-                ]
-            });
-
-            if (!result) {
-                const error = new Error("No user found with id: " + id);
-                error.status = 404;
-                throw error;
-            }
-
-            res
-                .status(200)
-                .send({ success: true, message: "User found with id: " + id, result });
-        } catch (error) {
-            next(error);
-        }
-    };
-
     getAllData = async (req, res, next) => {
         try {
             const { user } = req;
@@ -229,6 +196,39 @@ class UserController {
             }
 
             res.status(200).send({ success: true, message: "User found with id: " + id, result });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getUserById = async (req, res, next) => {
+        try {
+            const { id } = req.params;
+            const result = await User.findOne({
+                where: {
+                    id,
+                },
+                attributes: [
+                    "id",
+                    "userName",
+                    "name",
+                    "surname",
+                    "birthDate",
+                    "email",
+                    "emailConfirmed",
+                    "oldUserName"
+                ]
+            });
+
+            if (!result) {
+                const error = new Error("No user found with id: " + id);
+                error.status = 404;
+                throw error;
+            }
+
+            res
+                .status(200)
+                .send({ success: true, message: "User found with id: " + id, result });
         } catch (error) {
             next(error);
         }

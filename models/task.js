@@ -94,13 +94,13 @@ const trimFields = (instance) => {
 Task.beforeCreate(async (taskInstance, options) => {
     trimFields(taskInstance);
 
-    taskInstance.title = await generateUniqueTitle(taskInstance.title, Task, Task.BoardId, "BoardId");
+    taskInstance.title = await generateUniqueTitle(taskInstance.title, Task, taskInstance.BoardId, "BoardId");
 });
 
 Task.beforeUpdate(async (taskInstance, options) => {
     trimFields(taskInstance);
 
-    taskInstance.title = await generateUniqueTitle(taskInstance.title, Task, Task.BoardId, "BoardId");
+    taskInstance.title = await generateUniqueTitle(taskInstance.title, Task, taskInstance.BoardId, "BoardId");
 });
 
 export default Task;
