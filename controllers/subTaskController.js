@@ -249,6 +249,12 @@ class SubTaskController {
             throw error;
         }
 
+        if (!contributor.active) {
+            const error = new Error(`The contributor relation found is not active: ${contributor.active}` );
+            error.status = 403;
+            throw error;
+        }
+
         if (contributor.permit !== permit.Owner && contributor.permit !== permit.Editor) {
             const error = new Error(`User does not have permission to perform this action`);
             error.status = 403;

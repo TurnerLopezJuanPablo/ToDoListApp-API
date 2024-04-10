@@ -23,7 +23,11 @@ Contributor.init({
             permit.Reader
         ),
         allowNull: false
-    }
+    },
+    active: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: true
+    },
 }, {
     sequelize: connection,
     modelName: "Contributor",
