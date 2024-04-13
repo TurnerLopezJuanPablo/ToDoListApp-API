@@ -18,13 +18,12 @@ taskRoutes.post("/create", taskController.createTask);
 
 // PUT 
 taskRoutes.put("/:id/update", taskController.updateTask);
+taskRoutes.put("/:boardId/generateNewOrder", taskController.generateNewOrder);
 
 // PATCH
 taskRoutes.patch("/:id/toggleDone", taskController.toggleDone);
-taskRoutes.patch("/:id/:groupId/addGroup", taskController.addTaskToGroup);
-taskRoutes.patch("/:id/removeTaskFromGroup", taskController.removeTaskFromGroup);
-taskRoutes.patch("/:id/:subTaskId", taskController.addSubTask);
-taskRoutes.patch("/:id/:subTaskId/remove", taskController.removeSubTask);
+taskRoutes.patch("/:id/toggleStarred", taskController.toggleStarred);
+taskRoutes.patch("/:id/asignUserToTask", taskController.asignUserToTask);
 
 // DELETE
 taskRoutes.delete("/:id/delete", taskController.deleteTask);

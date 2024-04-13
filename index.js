@@ -6,11 +6,12 @@ import cors from 'cors';
 
 // Seeds
 import seedUser from './seeds/userSeed.js';
-import seedTask from './seeds/taskSeed.js';
-import seedGroup from './seeds/groupSeed.js';
+import seedBoard from './seeds/boardSeed.js';
 import seedCategory from './seeds/categorySeed.js';
+import seedTask from './seeds/taskSeed.js';
+import seedContributor from './seeds/contributorSeed.js';
+import seedSubTask from './seeds/subTaskSeed.js';
 import seedComment from './seeds/commentSeed.js';
-import seedUserTask from './seeds/seedUserTask.js';
 
 const app = express()
 
@@ -42,7 +43,8 @@ app.use((error, req, res, next) => {
     .send(responseData);
 });
 
-const forceSync = false;
+const forceSync = false; // TRUE to drop all existing tables and recreate them with new Model definitions
+
 const port = parseInt(serverPort) || 8080;
 
 connection.sync({ force: forceSync })
@@ -56,11 +58,12 @@ connection.sync({ force: forceSync })
   })
   .then(async () => {
     if (forceSync) {
-      await seedUser(5);
-      await seedGroup(3);
-      await seedCategory(4);
-      await seedTask(10);
-      await seedComment(8);
-      await seedUserTask(3);
+      await seedUser(6);
+      await seedBoard(4);
+      await seedContributor();
+      await seedCategory(8);
+      await seedTask(12);
+      await seedSubTask(24);
+      await seedComment(72);
     }
   });

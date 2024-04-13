@@ -32,11 +32,11 @@ Category.init({
 });
 
 Category.beforeCreate(async (category, options) => {
-    category.title = await generateUniqueTitle(category.title, Category);
+    category.title = await generateUniqueTitle(category.title, Category, category.BoardId, "BoardId");
 });
 
 Category.beforeUpdate(async (category, options) => {
-    category.title = await generateUniqueTitle(category.title, Category);
+    category.title = await generateUniqueTitle(category.title, Category, category.BoardId, "BoardId");
 });
 
 export default Category;

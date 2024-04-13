@@ -1,4 +1,5 @@
-import { Category, Task } from "../models/index.js";
+import { Category, Task, Contributor } from "../models/index.js";
+import { permit } from "../utils/utils.js";
 
 class CategoryController {
     constructor() { }
@@ -9,12 +10,12 @@ class CategoryController {
                 attributes: [
                     "id",
                     "title",
-                    "UserId",
+                    "BoardId",
                 ],
                 include: [
                     {
                         model: Task,
-                        as: 'tasks',
+                        as: 'Tasks',
                         attributes: ['id'],
                     },
                 ]
@@ -40,12 +41,12 @@ class CategoryController {
                 attributes: [
                     "id",
                     "title",
-                    "UserId",
+                    "BoardId",
                 ],
                 include: [
                     {
                         model: Task,
-                        as: 'tasks',
+                        as: 'Tasks',
                         attributes: ['id'],
                     },
                 ]
@@ -67,9 +68,14 @@ class CategoryController {
 
     createCategory = async (req, res, next) => {
         try {
-            const { title } = req.body;
+            const { title, BoardId } = req.body;
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId);
+
             const result = await Category.create({
                 title,
+                BoardId
             });
             if (!result) throw new Error("Failed to create the category");
             res
@@ -83,7 +89,10 @@ class CategoryController {
     updateCategory = async (req, res, next) => {
         try {
             const { id } = req.params;
-            const { title } = req.body;
+            const { title, BoardId } = req.body;
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId);
 
             const result = await Category.update(
                 {
@@ -92,7 +101,9 @@ class CategoryController {
                 {
                     where: {
                         id,
+                        BoardId
                     },
+                    individualHooks: true,
                 }
             );
 
@@ -114,9 +125,13 @@ class CategoryController {
     deleteCategory = async (req, res, next) => {
         try {
             const { id } = req.params;
+            const { BoardId } = req.body;
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId);
 
             const result = await Category.destroy({
-                where: { id: id },
+                where: { id: id, BoardId },
             });
 
             if (result === 1) {
@@ -131,11 +146,32 @@ class CategoryController {
                 });
             }
         } catch (error) {
-            res.status(500).send({
-                success: false,
-                message: "Error trying to delete Category with id: " + id + error.message,
-            });
+            next(error);
         }
+    };
+
+    checkPermit = async (userId, boardId) => {
+        const contributor = await Contributor.findOne({ where: { UserId: userId, BoardId: boardId } });
+
+        if (!contributor) {
+            const error = new Error(`No contributor found with UserId: ${userId} and BoardId: ${boardId}`);
+            error.status = 404;
+            throw error;
+        }
+
+        if (!contributor.active) {
+            const error = new Error(`The contributor relation found is not active: ${contributor.active}` );
+            error.status = 403;
+            throw error;
+        }
+
+        if (contributor.permit !== permit.Owner && contributor.permit !== permit.Editor) {
+            const error = new Error(`User does not have permission to perform this action`);
+            error.status = 403;
+            throw error;
+        }
+
+        return true;
     };
 }
 

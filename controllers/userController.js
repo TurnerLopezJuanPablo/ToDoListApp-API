@@ -1,8 +1,9 @@
-import { Category, Group, User, Task, Comment } from "../models/index.js";
+import { Board, Category, Contributor, SubTask, Task, User, Comment } from "../models/index.js";
 import sequelize from '../connection/connection.js';
 import { generateToken } from "../utils/token.js";
 import bcrypt from "bcrypt";
 import moment from "moment";
+import { Op } from "sequelize";
 
 class UserController {
     constructor() { }
@@ -35,6 +36,11 @@ class UserController {
                 error.status = 404;
                 throw error;
             }
+            if (!result.activeUser) {
+                const error = new Error(`User with email ${email} is no longer active. Please go to the HELP section to reactivate the account.`);
+                error.status = 403;
+                throw error;
+            }
 
             const correctPassword = await result.validatePassword(password);
 
@@ -53,7 +59,15 @@ class UserController {
             };
 
             const token = generateToken(payload);
-            
+
+            // Cookie for Thunder Client - Start
+            res.cookie('tokenToDoListApp', token, {
+                httpOnly: true, // The cookie is not accessible via client-side JavaScript
+                sameSite: 'Strict', // Ensure the cookie is sent only in a first-party context
+                maxAge: 86400000, // Set the cookie expiration time (e.g., 1 day)
+            });
+            // End
+
             res
                 .status(200)
                 .send({
@@ -76,6 +90,7 @@ class UserController {
                 email,
                 password,
             } = req.body;
+
             const result = await User.create({
                 userName,
                 name,
@@ -85,6 +100,7 @@ class UserController {
                 password,
             });
             if (!result) throw new Error("Failed to create the user");
+            
             res
                 .status(200)
                 .send({ success: true, message: "User created successfully" });
@@ -97,6 +113,128 @@ class UserController {
         try {
             const { user } = req;
             res.status(200).send({ success: true, message: "User", user });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getAllData = async (req, res, next) => {
+        try {
+            const { user } = req;
+            const result = await User.findOne({
+                where: {
+                    id: user.idUser
+                },
+                attributes: [
+                    "id",
+                    "userName",
+                    "name",
+                    "surname",
+                    "birthDate",
+                    "email",
+                    "emailConfirmed",
+                    "oldUserName"
+                ],
+                include: [
+                    {
+                        model: Contributor,
+                        as: 'Contributes',
+                        attributes: ['id', 'createdAt', 'updatedAt', 'permit'],
+                        include: [
+                            {
+                                model: Board,
+                                as: 'Board',
+                                attributes: ['id', 'title', 'description'],
+                                include: [
+                                    {
+                                        model: Category,
+                                        as: 'Categories',
+                                        attributes: ['id', 'title']
+                                    },
+                                    {
+                                        model: Task,
+                                        as: 'Tasks',
+                                        attributes: [
+                                            'id',
+                                            'title',
+                                            'description',
+                                            'done',
+                                            'starred',
+                                            'due_date',
+                                            'priority',
+                                            'order',
+                                            'assigned',
+                                            'createdAt',
+                                            'updatedAt',
+                                            'updatedBy',
+                                            'CategoryId',
+                                        ],
+                                        include: [
+                                            {
+                                                model: SubTask,
+                                                as: 'SubTasks',
+                                                attributes: ['id', 'text', 'done', 'order']
+                                            },
+                                        ]
+                                    }
+                                ]
+                            }
+                        ]
+                    }
+                ]
+            });
+
+            if (!result) {
+                const error = new Error("No user found with id: " + user.idUser);
+                error.status = 404;
+                throw error;
+            }
+
+            res.status(200).send({ success: true, message: "Get all User data:", result });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getUsersBySearch = async (req, res, next) => {
+        try {
+            const { search } = req.body;
+            const { user } = req;
+
+            const result = await User.findAndCountAll({
+                where: {
+                    [Op.and]: [
+                        {
+                            userName: {
+                                [Op.like]: `%${search}%`
+                            }
+                        },
+                        {
+                            id: {
+                                [Op.not]: user.idUser
+                            }
+                        }
+                    ],
+                    activeUser: true,
+                },
+                attributes: [
+                    "userName",
+                    "name",
+                    "surname",
+                    "email",
+                    "oldUserName"
+                ],
+                limit: 15
+            });
+            if (!result) {
+                const error = new Error("No users found with search: " + search);
+                error.status = 404;
+                throw error;
+            }
+
+            res
+                .status(200)
+                .send({ success: true, message: "Users found with search: " + search, result });
         } catch (error) {
             next(error);
         }
@@ -116,62 +254,8 @@ class UserController {
                     "surname",
                     "birthDate",
                     "email",
+                    "emailConfirmed",
                     "oldUserName"
-                ]
-            });
-
-            if (!result) {
-                const error = new Error("No user found with id: " + id);
-                error.status = 404;
-                throw error;
-            }
-
-            res
-                .status(200)
-                .send({ success: true, message: "User found with id: " + id, result });
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    getAllData = async (req, res, next) => {
-        try {
-            const { user } = req;
-            const id = user.idUser
-            const result = await User.findOne({
-                where: {
-                    id,
-                },
-                attributes: [
-                    "id",
-                    "userName",
-                    "name",
-                    "surname",
-                    "birthDate",
-                    "email",
-                    "oldUserName"
-                ],
-                include: [
-                    {
-                        model: Category,
-                        as: 'categories',
-                        attributes: ['id', 'title'],
-                    },
-                    {
-                        model: Group,
-                        as: 'groups',
-                        attributes: ['id', 'title', 'description', 'order'],
-                    },
-                    {
-                        model: Task,
-                        as: 'tasks',
-                        attributes: ['id', 'title', 'description', 'done', 'due_date', 'priority', 'order', 'parentId', 'GroupId', 'CategoryId'],
-                    },
-                    {
-                        model: Comment,
-                        as: 'comments',
-                        attributes: ['id', 'title', 'created_at'],
-                    },
                 ]
             });
 
@@ -191,7 +275,9 @@ class UserController {
 
     logOut = async (req, res, next) => {
         try {
+            // Cookie for Thunder Client - Start
             res.cookie("tokenToDoListApp", "");
+            // End
 
             res.status(200).send({ success: true, message: "User session was closed" });
         } catch (error) {
@@ -202,23 +288,15 @@ class UserController {
     updatePassword = async (req, res, next) => {
         try {
             let result;
-            const { id } = req.params;
-            const {
-                oldPassword,
-                newPassword,
-            } = req.body;
+            const { oldPassword, newPassword } = req.body;
 
-            const user = await User.findOne({
+            const { user } = req;
+
+            const userResult = await User.findOne({
                 where: {
-                    id: id,
+                    id: user.idUser,
                 },
             });
-
-            if (!user) {
-                const error = new Error("No user found with id: " + id);
-                error.status = 404;
-                throw error;
-            }
 
             if (oldPassword == null || oldPassword == "") {
                 const error = new Error(`The old password provided is empty or null`);
@@ -232,7 +310,13 @@ class UserController {
                 throw error;
             }
 
-            const passwordMatch = await bcrypt.compare(oldPassword, user.password);
+            if (newPassword === oldPassword) {
+                const error = new Error("The new password cannot be the same as the old password");
+                error.status = 400;
+                throw error;
+            }
+
+            const passwordMatch = await bcrypt.compare(oldPassword, userResult.password);
 
             if (passwordMatch) {
                 const passwordRegex = /^(?=.*[A-Z])(?=.*[0-9]).{8,}$/;
@@ -245,7 +329,7 @@ class UserController {
                 result = await User.update(
                     { password: newPassword },
                     {
-                        where: { id },
+                        where: { id: user.idUser },
                         individualHooks: true,
                     }
                 );
@@ -272,29 +356,12 @@ class UserController {
 
     updateUser = async (req, res, next) => {
         try {
-            const { id } = req.params;
-            const {
-                name,
-                surname,
-                birthDate,
-                email,
-            } = req.body;
+            const { user } = req;
+            const { name, surname, birthDate } = req.body;
 
-            if (!name || !surname || !birthDate || !email) {
+            if (!name || !surname || !birthDate) {
                 const error = new Error("One or more fields are empty or null");
                 error.status = 400;
-                throw error;
-            }
-
-            const user = await User.findOne({
-                where: {
-                    id: id,
-                },
-            });
-
-            if (!user) {
-                const error = new Error("No user found with id: " + id);
-                error.status = 404;
                 throw error;
             }
 
@@ -303,12 +370,12 @@ class UserController {
                     name,
                     surname,
                     birthDate,
-                    email,
                 },
                 {
                     where: {
-                        id,
+                        id: user.idUser,
                     },
+                    individualHooks: true,
                 }
             );
 
@@ -324,22 +391,8 @@ class UserController {
 
     updateUserName = async (req, res, next) => {
         try {
-            const { id } = req.params;
-            const {
-                newUserName,
-            } = req.body;
-
-            const user = await User.findOne({
-                where: {
-                    id: id,
-                },
-            });
-
-            if (!user) {
-                const error = new Error("No user found with id: " + id);
-                error.status = 404;
-                throw error;
-            }
+            const { user } = req;
+            const { newUserName } = req.body;
 
             if (newUserName == null || newUserName == "") {
                 const error = new Error(`The new UserName provided is empty or null`);
@@ -367,12 +420,12 @@ class UserController {
                     lastUserNameUpdated: sequelize.literal('CURRENT_TIMESTAMP')
                 },
                 {
-                    where: { id },
+                    where: { id: user.idUser },
                 }
             );
 
             if (!result[0]) {
-                throw new Error(`Failed to update the username of User with id: ${id}`);
+                throw new Error(`Failed to update the username of User with id: ${user.idUser}`);
             }
 
             res.status(200).send({
@@ -382,7 +435,33 @@ class UserController {
         } catch (error) {
             next(error);
         };
-    }
+    };
+
+    setInactiveToUser = async (req, res, next) => {
+        try {
+            const { user } = req;
+            const result = await User.update(
+                {
+                    activeUser: false
+                },
+                {
+                    where: { id: user.idUser },
+                }
+            );
+
+            if (!result) {
+                const error = new Error("No user found with id: " + user.idUser);
+                error.status = 404;
+                throw error;
+            }
+
+            res
+                .status(200)
+                .send({ success: true, message: "User with id: " + user.idUser + " was set to inactive" });
+        } catch (error) {
+            next(error);
+        }
+    };
 
     deleteUser = async (req, res, next) => {
         try {
@@ -404,10 +483,7 @@ class UserController {
                 });
             }
         } catch (error) {
-            res.status(500).send({
-                success: false,
-                message: "Error trying to delete User with id: " + id + error.message,
-            });
+            next(error);
         }
     };
 

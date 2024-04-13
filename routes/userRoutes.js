@@ -16,17 +16,20 @@ userRoutes.use(validateAccess);
 // GET
 userRoutes.get("/me", userController.getLoggedUser);
 userRoutes.get("/getAllData", userController.getAllData)
+userRoutes.get("/getUsersBySearch", userController.getUsersBySearch);
 userRoutes.get("/:id", userController.getUserById);
+
 
 // POST
 userRoutes.post("/logout", userController.logOut);
-userRoutes.post("/:id/updatePassword", userController.updatePassword);
+userRoutes.post("/updatePassword", userController.updatePassword);
 
 // PUT 
-userRoutes.put("/:id/update", userController.updateUser);
+userRoutes.put("/update", userController.updateUser);
 
 // PATCH
-userRoutes.patch("/:id/updateUserName", userController.updateUserName);
+userRoutes.patch("/updateUserName", userController.updateUserName);
+userRoutes.patch("/setInactiveToUser", userController.setInactiveToUser);
 
 // DELETE
 userRoutes.delete("/:id/delete", userController.deleteUser);

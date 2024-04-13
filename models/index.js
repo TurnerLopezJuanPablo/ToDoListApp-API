@@ -1,45 +1,36 @@
 import Task from "./task.js";
-import Group from "./group.js";
+import Board from "./board.js";
 import User from "./user.js";
 import Category from "./category.js";
 import Comment from "./comment.js";
-import UserTask from "./userTask.js";
+import Contributor from "./contributor.js";
+import SubTask from "./subTask.js"
 
-// Task
-Task.hasMany(Task, { as: 'subtasks', foreignKey: 'parentId' });
+// Contributor
+User.hasMany(Contributor, { as: "Contributes", foreignKey: { allowNull: false } });
+Contributor.belongsTo(User, { foreignKey: { allowNull: false } });
 
-// UserTask
-Task.belongsToMany(User, {
-    as: 'UserTasks',
-    through: "UserTask",
-    foreignKey: "taskId",
-})
-
-User.belongsToMany(Task, {
-    as: 'UserTasks',
-    through: "UserTask",
-    foreignKey: "userId",
-})
-
-// Group
-Group.hasMany(Task, { as: 'tasks' });
+Board.hasMany(Contributor, { as: "Members", foreignKey: { allowNull: false } });
+Contributor.belongsTo(Board, { foreignKey: { allowNull: false } });
 
 // User
-User.hasMany(Task, { as: 'tasks' });
-User.hasMany(Group, { as: 'groups' });
-
-// Category
-Category.belongsTo(User);
-User.hasMany(Category, { as: 'categories' });
-
-Category.hasMany(Task, { as: 'tasks' });
-Task.belongsTo(Category);
+User.hasMany(Comment, { as: "Comments", foreignKey: { allowNull: false } });
 
 // Comment
-Task.hasMany(Comment, { as: 'comments' });
-Comment.belongsTo(Task);
+Comment.belongsTo(User, { foreignKey: { allowNull: false } });
 
-Comment.belongsTo(User);
-User.hasMany(Comment, { as: 'comments' });
+// Board
+Board.hasMany(Category, { as: "Categories", foreignKey: { allowNull: false } });
+Board.hasMany(Task, { as: "Tasks", foreignKey: { allowNull: false } });
 
-export { Task, Group, User, Category, Comment, UserTask };
+// Category
+Category.belongsTo(Board, { foreignKey: { allowNull: false } });
+Category.hasMany(Task, { as: "Tasks" })
+
+// Task
+Task.hasMany(Comment, { as: "Comments", foreignKey: { allowNull: false } });
+Task.hasMany(SubTask, { as: "SubTasks", foreignKey: { allowNull: false } });
+Task.belongsTo(Board);
+Task.belongsTo(Category);
+
+export { Task, Board, User, Category, Comment, Contributor, SubTask };

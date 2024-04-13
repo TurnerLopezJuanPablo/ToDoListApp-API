@@ -19,7 +19,7 @@ commentRoutes.post("/create", commentController.createComment);
 // PUT 
 commentRoutes.put("/:id/update", commentController.updateComment);
 
-// DELETE
-commentRoutes.delete("/:id/delete", commentController.deleteComment);
+// PATCH
+commentRoutes.patch("/:id/setCommentToDeleted", commentController.setCommentToDeleted);
 
 export default commentRoutes;

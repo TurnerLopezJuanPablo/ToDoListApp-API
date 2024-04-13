@@ -1,4 +1,6 @@
-import { Comment, Task } from "../models/index.js";
+import { Comment, Task, Contributor } from "../models/index.js";
+import sequelize from '../connection/connection.js';
+import { permit, deletedCommentText } from "../utils/utils.js";
 
 class CommentController {
     constructor() { }
@@ -8,9 +10,12 @@ class CommentController {
             const result = await Comment.findAll({
                 attributes: [
                     "id",
-                    "title",
+                    "text",
                     "created_at",
-                    "TaskId",
+                    "updatedAt",
+                    "deleted",
+                    "oldText",
+                    "UserId",
                     "TaskId",
                 ],
             });
@@ -34,8 +39,12 @@ class CommentController {
                 },
                 attributes: [
                     "id",
-                    "title",
+                    "text",
                     "created_at",
+                    "updatedAt",
+                    "deleted",
+                    "oldText",
+                    "UserId",
                     "TaskId",
                 ],
             });
@@ -56,9 +65,15 @@ class CommentController {
 
     createComment = async (req, res, next) => {
         try {
-            const { title, TaskId } = req.body;
+            const { text, TaskId, BoardId } = req.body;
+
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId, TaskId, null);
+
             const result = await Comment.create({
-                title,
+                text,
+                UserId: user.idUser,
                 TaskId
             });
             if (!result) throw new Error("Failed to create the comment");
@@ -73,11 +88,27 @@ class CommentController {
     updateComment = async (req, res, next) => {
         try {
             const { id } = req.params;
-            const { title } = req.body;
+            const { text, TaskId, BoardId } = req.body;
+
+            const { user } = req;
+
+            await this.checkPermit(user.idUser, BoardId, TaskId, id);
+
+            const existingComment = await Comment.findByPk(id);
+
+            if (existingComment.updatedAt !== null) {
+                const error = new Error(`Comment with id: ${id} has already been edited`);
+                error.status = 400;
+                throw error;
+            }
+
+            const oldText = existingComment.text;
 
             const result = await Comment.update(
                 {
-                    title,
+                    text,
+                    updatedAt: sequelize.literal('CURRENT_TIMESTAMP'),
+                    oldText
                 },
                 {
                     where: {
@@ -101,31 +132,96 @@ class CommentController {
         }
     };
 
-    deleteComment = async (req, res, next) => {
+    setCommentToDeleted = async (req, res, next) => {
         try {
             const { id } = req.params;
+            const { TaskId, BoardId } = req.body;
 
-            const result = await Comment.destroy({
-                where: { id: id },
-            });
+            const { user } = req;
 
-            if (result === 1) {
-                res.status(200).send({
-                    success: true,
-                    message: "Comment deleted successfully",
-                });
-            } else if (result === 0) {
-                res.status(404).send({
-                    success: false,
-                    message: "Comment not found with id: " + id,
-                });
+            await this.checkPermit(user.idUser, BoardId, TaskId, id);
+
+            const result = await Comment.update(
+                {
+                    text: deletedCommentText,
+                    oldText: deletedCommentText,
+                    deleted: true,
+                },
+                {
+                    where: {
+                        id,
+                    },
+                }
+            );
+
+            if (result[0] === 0) {
+                const error = new Error("Failed to update the comment with id: " + id);
+                error.status = 404;
+                throw error;
             }
-        } catch (error) {
-            res.status(500).send({
-                success: false,
-                message: "Error trying to delete Comment with id: " + id + error.message,
+
+            res.status(200).send({
+                success: true,
+                message: "Comment with id " + id + " updated successfully",
+                result: deletedCommentText
             });
         }
+        catch (error) {
+            next(error);
+        }
+    };
+
+    checkPermit = async (userId, boardId, taskId, commentId) => {
+        const contributor = await Contributor.findOne({ where: { UserId: userId, BoardId: boardId } });
+
+        if (!contributor) {
+            const error = new Error(`No contributor found with UserId: ${userId} and BoardId: ${boardId}`);
+            error.status = 404;
+            throw error;
+        }
+
+        if (!contributor.active) {
+            const error = new Error(`The contributor relation found is not active: ${contributor.active}` );
+            error.status = 403;
+            throw error;
+        }
+
+        if (contributor.permit === permit.Reader) {
+            const error = new Error(`User does not have permission to perform this action`);
+            error.status = 403;
+            throw error;
+        }
+
+        const existingTask = await Task.findOne({ where: { id: taskId, boardId } });
+
+        if (!existingTask) {
+            const error = new Error("Task with ID: " + taskId + " does not match the provided board ID");
+            error.status = 404;
+            throw error;
+        }
+
+        if (commentId) {
+            const existingComment = await Comment.findOne({ where: { id: commentId, TaskId: taskId } });
+            if (!existingComment) {
+                const error = new Error("Comment with ID: " + commentId + " does not match the provided task ID");
+                error.status = 404;
+                throw error;
+            }
+
+            if (existingComment.UserId !== userId) {
+                const error = new Error("The provided user ID does not match the user ID associated with the comment");
+                error.status = 401; 
+                throw error;
+            }          
+            
+            if (existingComment.deleted) {
+                const error = new Error("The comment has been deleted");
+                error.status = 401;
+                throw error;
+            }
+        }
+
+        return true;
     };
 }
 

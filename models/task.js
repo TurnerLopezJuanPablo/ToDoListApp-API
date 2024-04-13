@@ -1,6 +1,6 @@
-import { DataTypes, Model } from 'sequelize';
+import { DataTypes, Model, Sequelize } from 'sequelize';
 import connection from "../connection/connection.js";
-import { generateUniqueTitle } from '../utils/utils.js';
+import { generateUniqueTitle, priority } from '../utils/utils.js';
 
 class Task extends Model { }
 
@@ -27,9 +27,20 @@ Task.init({
     },
     description: {
         type: DataTypes.TEXT,
-        allowNull: true
+        allowNull: true,
+        validate: {
+            customLength(value) {
+                if (value.length > 500) {
+                    throw new Error('Description must have a maximum of 500 characters');
+                }
+            },
+        },
     },
     done: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    starred: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
     },
@@ -38,37 +49,58 @@ Task.init({
         allowNull: true
     },
     priority: {
-        type: DataTypes.ENUM('low', 'medium', 'high', 'none'),
+        type: DataTypes.ENUM(
+            priority.High,
+            priority.Medium,
+            priority.Low,
+            priority.None,
+        ),
         defaultValue: 'none'
     },
     order: {
         type: DataTypes.INTEGER,
         allowNull: false,
         defaultValue: 0
-        // Check for unique value between Tasks and Groups
     },
-    parentId: {
+    assigned: {
         type: DataTypes.INTEGER,
-        validate: {
-            cannotBeCircular(value) {
-                if (parseInt(value) === parseInt(this.getDataValue('id'))) {
-                    throw new Error('A task cannot be its own subtask.');
-                }
-            },
-        },
+        allowNull: true,
     },
+    createdAt: {
+        type: Sequelize.DATE,
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
+    },
+    updatedAt: {
+        type: Sequelize.DATE,
+        allowNull: true,
+        defaultValue: null
+    },
+    updatedBy: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
+    }
 }, {
     sequelize: connection,
     modelName: "Task",
     timestamps: false
 });
 
+const trimFields = (instance) => {
+    if (instance.title) instance.title = instance.title.trim();
+    if (instance.description) instance.description = instance.description.trim();
+};
+
 Task.beforeCreate(async (taskInstance, options) => {
-    taskInstance.title = await generateUniqueTitle(taskInstance.title, Task);
+    trimFields(taskInstance);
+
+    taskInstance.title = await generateUniqueTitle(taskInstance.title, Task, taskInstance.BoardId, "BoardId");
 });
 
 Task.beforeUpdate(async (taskInstance, options) => {
-    taskInstance.title = await generateUniqueTitle(taskInstance.title, Task);
+    trimFields(taskInstance);
+
+    taskInstance.title = await generateUniqueTitle(taskInstance.title, Task, taskInstance.BoardId, "BoardId");
 });
 
 export default Task;
