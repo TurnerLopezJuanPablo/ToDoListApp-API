@@ -100,6 +100,7 @@ class UserController {
                 password,
             });
             if (!result) throw new Error("Failed to create the user");
+            
             res
                 .status(200)
                 .send({ success: true, message: "User created successfully" });
@@ -120,10 +121,9 @@ class UserController {
     getAllData = async (req, res, next) => {
         try {
             const { user } = req;
-            const id = user.idUser;
             const result = await User.findOne({
                 where: {
-                    id,
+                    id: user.idUser
                 },
                 attributes: [
                     "id",
@@ -175,11 +175,6 @@ class UserController {
                                                 as: 'SubTasks',
                                                 attributes: ['id', 'text', 'done', 'order']
                                             },
-                                            {
-                                                model: Comment,
-                                                as: 'Comments',
-                                                attributes: ['id', 'text', 'created_At']
-                                            }
                                         ]
                                     }
                                 ]
@@ -190,12 +185,56 @@ class UserController {
             });
 
             if (!result) {
-                const error = new Error("No user found with id: " + id);
+                const error = new Error("No user found with id: " + user.idUser);
                 error.status = 404;
                 throw error;
             }
 
-            res.status(200).send({ success: true, message: "User found with id: " + id, result });
+            res.status(200).send({ success: true, message: "Get all User data:", result });
+        } catch (error) {
+            next(error);
+        }
+    };
+
+    getUsersBySearch = async (req, res, next) => {
+        try {
+            const { search } = req.body;
+            const { user } = req;
+
+            const result = await User.findAndCountAll({
+                where: {
+                    [Op.and]: [
+                        {
+                            userName: {
+                                [Op.like]: `%${search}%`
+                            }
+                        },
+                        {
+                            id: {
+                                [Op.not]: user.idUser
+                            }
+                        }
+                    ],
+                    activeUser: true,
+                },
+                attributes: [
+                    "userName",
+                    "name",
+                    "surname",
+                    "email",
+                    "oldUserName"
+                ],
+                limit: 15
+            });
+            if (!result) {
+                const error = new Error("No users found with search: " + search);
+                error.status = 404;
+                throw error;
+            }
+
+            res
+                .status(200)
+                .send({ success: true, message: "Users found with search: " + search, result });
         } catch (error) {
             next(error);
         }
@@ -229,39 +268,6 @@ class UserController {
             res
                 .status(200)
                 .send({ success: true, message: "User found with id: " + id, result });
-        } catch (error) {
-            next(error);
-        }
-    };
-
-    getUsersBySearch = async (req, res, next) => {
-        try {
-            const { search } = req.params;
-            const result = await User.findAndCountAll({
-                where: {
-                    userName: {
-                        [Op.like]: `%${search}%`
-                    },
-                    activeUser: true,
-                },
-                attributes: [
-                    "userName",
-                    "name",
-                    "surname",
-                    "email",
-                    "oldUserName"
-                ],
-                limit: 15
-            });
-            if (!result) {
-                const error = new Error("No users found with search: " + search);
-                error.status = 404;
-                throw error;
-            }
-
-            res
-                .status(200)
-                .send({ success: true, message: "Users found with search: " + search, result });
         } catch (error) {
             next(error);
         }

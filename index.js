@@ -44,7 +44,6 @@ app.use((error, req, res, next) => {
 });
 
 const forceSync = false; // TRUE to drop all existing tables and recreate them with new Model definitions
-const useSeeds = false; // TRUE to use SEEDS when forceSync is also TRUE
 
 const port = parseInt(serverPort) || 8080;
 
@@ -58,13 +57,13 @@ connection.sync({ force: forceSync })
     console.error('Error synchronizing the database:', error);
   })
   .then(async () => {
-    if (forceSync && useSeeds) {
-      await seedUser(5);
-      await seedBoard(3);
+    if (forceSync) {
+      await seedUser(6);
+      await seedBoard(4);
       await seedContributor();
       await seedCategory(8);
-      await seedTask(15);
-      await seedSubTask(15);
-      await seedComment(10);
+      await seedTask(12);
+      await seedSubTask(24);
+      await seedComment(72);
     }
   });

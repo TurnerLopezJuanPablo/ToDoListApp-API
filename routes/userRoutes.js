@@ -16,8 +16,9 @@ userRoutes.use(validateAccess);
 // GET
 userRoutes.get("/me", userController.getLoggedUser);
 userRoutes.get("/getAllData", userController.getAllData)
+userRoutes.get("/getUsersBySearch", userController.getUsersBySearch);
 userRoutes.get("/:id", userController.getUserById);
-userRoutes.get("/:search/getUsersBySearch", userController.getUsersBySearch);
+
 
 // POST
 userRoutes.post("/logout", userController.logOut);
@@ -27,8 +28,8 @@ userRoutes.post("/updatePassword", userController.updatePassword);
 userRoutes.put("/update", userController.updateUser);
 
 // PATCH
-userRoutes.patch("/:id/updateUserName", userController.updateUserName);
-userRoutes.patch("/:id/setInactiveToUser", userController.setInactiveToUser);
+userRoutes.patch("/updateUserName", userController.updateUserName);
+userRoutes.patch("/setInactiveToUser", userController.setInactiveToUser);
 
 // DELETE
 userRoutes.delete("/:id/delete", userController.deleteUser);
