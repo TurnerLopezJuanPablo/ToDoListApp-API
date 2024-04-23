@@ -12,6 +12,7 @@ import seedTask from './seeds/taskSeed.js';
 import seedContributor from './seeds/contributorSeed.js';
 import seedSubTask from './seeds/subTaskSeed.js';
 import seedComment from './seeds/commentSeed.js';
+import seedCalculatorHistory from './seeds/calculatorHistorySeed.js';
 
 const app = express()
 
@@ -65,5 +66,6 @@ connection.sync({ force: forceSync })
       await seedTask(12);
       await seedSubTask(24);
       await seedComment(72);
+      await seedCalculatorHistory(20);
     }
   });

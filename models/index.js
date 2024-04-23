@@ -5,6 +5,7 @@ import Category from "./category.js";
 import Comment from "./comment.js";
 import Contributor from "./contributor.js";
 import SubTask from "./subTask.js"
+import CalculatorHistory from "./calculatorHistory.js";
 
 // Contributor
 User.hasMany(Contributor, { as: "Contributes", foreignKey: { allowNull: false } });
@@ -15,6 +16,7 @@ Contributor.belongsTo(Board, { foreignKey: { allowNull: false } });
 
 // User
 User.hasMany(Comment, { as: "Comments", foreignKey: { allowNull: false } });
+User.hasMany(CalculatorHistory, { as: "CalculatorHistory", foreignKey: { allowNull: false } });
 
 // Comment
 Comment.belongsTo(User, { foreignKey: { allowNull: false } });
@@ -33,4 +35,7 @@ Task.hasMany(SubTask, { as: "SubTasks", foreignKey: { allowNull: false } });
 Task.belongsTo(Board);
 Task.belongsTo(Category);
 
-export { Task, Board, User, Category, Comment, Contributor, SubTask };
+// CalculatorHistory
+CalculatorHistory.belongsTo(User, { foreignKey: { allowNull: false } })
+
+export { Task, Board, User, Category, Comment, Contributor, SubTask, CalculatorHistory };

@@ -160,7 +160,7 @@ class CategoryController {
         }
 
         if (!contributor.active) {
-            const error = new Error(`The contributor relation found is not active: ${contributor.active}` );
+            const error = new Error(`The contributor relation found is not active: ${contributor.active}`);
             error.status = 403;
             throw error;
         }
